@@ -32,3 +32,32 @@ func NodeLogs(nodeName, since string) (string, error) {
 	}
 	return string(out), nil
 }
+
+// MustGather runs `oc adm must-gather` with optional destination directory and
+// additional arguments.
+func MustGather(destDir string, extra []string) (string, error) {
+	args := []string{"adm", "must-gather"}
+	if destDir != "" {
+		args = append(args, fmt.Sprintf("--dest-dir=%s", destDir))
+	}
+	args = append(args, extra...)
+	out, err := run(args...)
+	if err != nil {
+		return "", fmt.Errorf("oc adm must-gather failed: %w: %s", err, out)
+	}
+	return string(out), nil
+}
+
+// SosReport collects a sosreport from the specified node using toolbox.
+// If caseID is non-empty, it is passed via --case-id.
+func SosReport(nodeName, caseID string) (string, error) {
+	args := []string{"debug", fmt.Sprintf("node/%s", nodeName), "--", "chroot", "/host", "toolbox", "--", "sosreport", "-k", "crio.all=on", "-k", "crio.logs=on", "--batch"}
+	if caseID != "" {
+		args = append(args, fmt.Sprintf("--case-id=%s", caseID))
+	}
+	out, err := run(args...)
+	if err != nil {
+		return "", fmt.Errorf("sosreport failed: %w: %s", err, out)
+	}
+	return string(out), nil
+}

@@ -65,6 +65,22 @@ var pprofTool = mcp.NewTool(
 	),
 )
 
+// mustGatherTool defines the collect_must_gather MCP tool.
+var mustGatherTool = mcp.NewTool(
+	"collect_must_gather",
+	mcp.WithTitleAnnotation("Collect cluster data via oc adm must-gather"),
+	mcp.WithDescription(`Runs "oc adm must-gather" to capture debugging information.
+
+Create a temporary directory and pass it using the --dest-dir option to store the output in a single place.`),
+	mcp.WithString("dest_dir",
+		mcp.Description("Directory to write gathered data"),
+	),
+	mcp.WithArray("extra_args",
+		mcp.Description("Additional arguments passed directly to oc adm must-gather"),
+		mcp.Items(map[string]any{"type": "string"}),
+	),
+)
+
 // handleDebugNode executes oc debug with the provided arguments.
 func handleDebugNode(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	nodeName, err := req.RequireString("node_name")
@@ -116,4 +132,47 @@ func handlePprof(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRes
 		return mcp.NewToolResultError(fmt.Errorf("pprof failed: %w: %s", err, out).Error()), nil
 	}
 	return mcp.NewToolResultText(string(out)), nil
+}
+
+// handleMustGather executes oc adm must-gather with the provided arguments.
+func handleMustGather(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	dest := req.GetString("dest_dir", "")
+	extraAny, _ := req.GetArguments()["extra_args"].([]any)
+	extras := make([]string, len(extraAny))
+	for i, a := range extraAny {
+		extras[i] = fmt.Sprint(a)
+	}
+	out, err := openshift.MustGather(dest, extras)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultText(out), nil
+}
+
+// sosReportTool defines the collect_sosreport MCP tool.
+var sosReportTool = mcp.NewTool(
+	"collect_sosreport",
+	mcp.WithTitleAnnotation("Collect sosreport from a node"),
+	mcp.WithDescription(`Runs "sosreport" in a debug pod via toolbox to collect node diagnostics.`),
+	mcp.WithString("node_name",
+		mcp.Description("Node to collect sosreport from"),
+		mcp.Required(),
+	),
+	mcp.WithString("case_id",
+		mcp.Description("Optional Red Hat support case ID"),
+	),
+)
+
+// handleSosReport executes sosreport on the target node using toolbox.
+func handleSosReport(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	nodeName, err := req.RequireString("node_name")
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	caseID := req.GetString("case_id", "")
+	out, err := openshift.SosReport(nodeName, caseID)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultText(out), nil
 }
