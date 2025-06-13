@@ -1,6 +1,6 @@
 # CRI-O MCP Server
 
-This project implements a minimal gRPC server for serving CRI-O configuration to Machine Config Pool (MCP) clients.
+This project implements a minimal gRPC server that speaks the **Model Context Protocol (MCP)** for CRI-O. It allows AI agents to query CRI-O and retrieve debugging information such as configuration, runtime status and container logs.
 
 ## Structure
 - `cmd/mcp-server`: entry point for running the server
@@ -22,4 +22,4 @@ Run the server (listens on `:50051` by default):
 ./mcp-server --config /etc/crio/crio.conf
 ```
 
-The server exposes a `GetCrioConfig` RPC that returns the contents of the CRI-O configuration file.
+The server exposes several RPCs, including `GetCrioConfig`, to retrieve CRI-O configuration and other runtime information.
