@@ -5,9 +5,7 @@ import (
 )
 
 // New creates a new MCP server using the mcp-go SDK.
-// configPath is currently unused but will be wired into
-// tool and resource handlers in future implementations.
-func New(configPath string) *mcpserver.MCPServer {
+func New() *mcpserver.MCPServer {
 	srv := mcpserver.NewMCPServer(
 		"CRI-O MCP Server",
 		"0.1.0",
@@ -19,8 +17,6 @@ func New(configPath string) *mcpserver.MCPServer {
 		mcpserver.ServerTool{Tool: debugNodeTool, Handler: handleDebugNode},
 		mcpserver.ServerTool{Tool: nodeLogsTool, Handler: handleNodeLogs},
 	)
-
-	_ = configPath
 
 	return srv
 }
