@@ -19,7 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MCPService_GetCrioConfig_FullMethodName = "/mcp.MCPService/GetCrioConfig"
+	MCPService_GetCrioConfig_FullMethodName    = "/mcp.MCPService/GetCrioConfig"
+	MCPService_GetRuntimeStatus_FullMethodName = "/mcp.MCPService/GetRuntimeStatus"
+	MCPService_ListContainers_FullMethodName   = "/mcp.MCPService/ListContainers"
+	MCPService_InspectContainer_FullMethodName = "/mcp.MCPService/InspectContainer"
 )
 
 // MCPServiceClient is the client API for MCPService service.
@@ -27,6 +30,9 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MCPServiceClient interface {
 	GetCrioConfig(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CrioConfigResponse, error)
+	GetRuntimeStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*RuntimeStatusResponse, error)
+	ListContainers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ContainersResponse, error)
+	InspectContainer(ctx context.Context, in *ContainerRequest, opts ...grpc.CallOption) (*ContainerInspectResponse, error)
 }
 
 type mCPServiceClient struct {
@@ -47,11 +53,44 @@ func (c *mCPServiceClient) GetCrioConfig(ctx context.Context, in *Empty, opts ..
 	return out, nil
 }
 
+func (c *mCPServiceClient) GetRuntimeStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*RuntimeStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RuntimeStatusResponse)
+	err := c.cc.Invoke(ctx, MCPService_GetRuntimeStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mCPServiceClient) ListContainers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ContainersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ContainersResponse)
+	err := c.cc.Invoke(ctx, MCPService_ListContainers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mCPServiceClient) InspectContainer(ctx context.Context, in *ContainerRequest, opts ...grpc.CallOption) (*ContainerInspectResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ContainerInspectResponse)
+	err := c.cc.Invoke(ctx, MCPService_InspectContainer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MCPServiceServer is the server API for MCPService service.
 // All implementations must embed UnimplementedMCPServiceServer
 // for forward compatibility.
 type MCPServiceServer interface {
 	GetCrioConfig(context.Context, *Empty) (*CrioConfigResponse, error)
+	GetRuntimeStatus(context.Context, *Empty) (*RuntimeStatusResponse, error)
+	ListContainers(context.Context, *Empty) (*ContainersResponse, error)
+	InspectContainer(context.Context, *ContainerRequest) (*ContainerInspectResponse, error)
 	mustEmbedUnimplementedMCPServiceServer()
 }
 
@@ -64,6 +103,15 @@ type UnimplementedMCPServiceServer struct{}
 
 func (UnimplementedMCPServiceServer) GetCrioConfig(context.Context, *Empty) (*CrioConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCrioConfig not implemented")
+}
+func (UnimplementedMCPServiceServer) GetRuntimeStatus(context.Context, *Empty) (*RuntimeStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRuntimeStatus not implemented")
+}
+func (UnimplementedMCPServiceServer) ListContainers(context.Context, *Empty) (*ContainersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListContainers not implemented")
+}
+func (UnimplementedMCPServiceServer) InspectContainer(context.Context, *ContainerRequest) (*ContainerInspectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InspectContainer not implemented")
 }
 func (UnimplementedMCPServiceServer) mustEmbedUnimplementedMCPServiceServer() {}
 func (UnimplementedMCPServiceServer) testEmbeddedByValue()                    {}
@@ -104,6 +152,60 @@ func _MCPService_GetCrioConfig_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MCPService_GetRuntimeStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MCPServiceServer).GetRuntimeStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MCPService_GetRuntimeStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MCPServiceServer).GetRuntimeStatus(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MCPService_ListContainers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MCPServiceServer).ListContainers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MCPService_ListContainers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MCPServiceServer).ListContainers(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MCPService_InspectContainer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ContainerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MCPServiceServer).InspectContainer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MCPService_InspectContainer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MCPServiceServer).InspectContainer(ctx, req.(*ContainerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MCPService_ServiceDesc is the grpc.ServiceDesc for MCPService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +216,18 @@ var MCPService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCrioConfig",
 			Handler:    _MCPService_GetCrioConfig_Handler,
+		},
+		{
+			MethodName: "GetRuntimeStatus",
+			Handler:    _MCPService_GetRuntimeStatus_Handler,
+		},
+		{
+			MethodName: "ListContainers",
+			Handler:    _MCPService_ListContainers_Handler,
+		},
+		{
+			MethodName: "InspectContainer",
+			Handler:    _MCPService_InspectContainer_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/harche/crio-mcp-server/pkg/cri"
 	pb "github.com/harche/crio-mcp-server/pkg/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -15,10 +16,11 @@ import (
 type MCPServer struct {
 	pb.UnimplementedMCPServiceServer
 	ConfigPath string
+	runtime    *cri.Crictl
 }
 
 func New(configPath string) *MCPServer {
-	return &MCPServer{ConfigPath: configPath}
+	return &MCPServer{ConfigPath: configPath, runtime: cri.New("")}
 }
 
 func (s *MCPServer) GetCrioConfig(ctx context.Context, _ *pb.Empty) (*pb.CrioConfigResponse, error) {
@@ -28,6 +30,33 @@ func (s *MCPServer) GetCrioConfig(ctx context.Context, _ *pb.Empty) (*pb.CrioCon
 		return nil, status.Errorf(codes.Internal, "unable to read config")
 	}
 	return &pb.CrioConfigResponse{Config: string(data)}, nil
+}
+
+func (s *MCPServer) GetRuntimeStatus(ctx context.Context, _ *pb.Empty) (*pb.RuntimeStatusResponse, error) {
+	out, err := s.runtime.RuntimeStatus()
+	if err != nil {
+		log.Printf("runtime status error: %v", err)
+		return nil, status.Errorf(codes.Internal, "runtime status error")
+	}
+	return &pb.RuntimeStatusResponse{Status: out}, nil
+}
+
+func (s *MCPServer) ListContainers(ctx context.Context, _ *pb.Empty) (*pb.ContainersResponse, error) {
+	out, err := s.runtime.ListContainers()
+	if err != nil {
+		log.Printf("list containers error: %v", err)
+		return nil, status.Errorf(codes.Internal, "list containers error")
+	}
+	return &pb.ContainersResponse{Containers: out}, nil
+}
+
+func (s *MCPServer) InspectContainer(ctx context.Context, req *pb.ContainerRequest) (*pb.ContainerInspectResponse, error) {
+	out, err := s.runtime.InspectContainer(req.GetId())
+	if err != nil {
+		log.Printf("inspect container error: %v", err)
+		return nil, status.Errorf(codes.Internal, "inspect container error")
+	}
+	return &pb.ContainerInspectResponse{Info: out}, nil
 }
 
 func (s *MCPServer) Start(addr string) error {
