@@ -13,7 +13,9 @@ import (
 var debugNodeTool = mcp.NewTool(
 	"debug_node",
 	mcp.WithTitleAnnotation("Run oc debug on a node"),
-	mcp.WithDescription("Creates an OpenShift debug pod on the specified node, runs arbitrary commands, and returns the output."),
+	mcp.WithDescription(`Creates an OpenShift debug pod on the specified node, runs arbitrary commands, and returns the output.
+
+Use "oc -h" to discover the full set of commands and flags provided by the OpenShift CLI. When unsure about a subcommand, recursively run "oc <command> -h" to inspect available options.`),
 	mcp.WithString("node_name",
 		mcp.Description("Name of the node to debug (e.g. ip-10-0-1-5.ec2.internal)"),
 		mcp.Required(),
