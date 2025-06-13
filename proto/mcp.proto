@@ -6,10 +6,29 @@ option go_package = "github.com/harche/crio-mcp-server/pkg/proto";
 
 service MCPService {
   rpc GetCrioConfig(Empty) returns (CrioConfigResponse);
+  rpc GetRuntimeStatus(Empty) returns (RuntimeStatusResponse);
+  rpc ListContainers(Empty) returns (ContainersResponse);
+  rpc InspectContainer(ContainerRequest) returns (ContainerInspectResponse);
 }
 
 message Empty {}
 
 message CrioConfigResponse {
   string config = 1;
+}
+
+message RuntimeStatusResponse {
+  string status = 1;
+}
+
+message ContainersResponse {
+  string containers = 1;
+}
+
+message ContainerRequest {
+  string id = 1;
+}
+
+message ContainerInspectResponse {
+  string info = 1;
 }
