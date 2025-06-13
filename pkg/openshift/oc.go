@@ -3,6 +3,7 @@ package openshift
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 )
 
 // run executes the oc command with given arguments and returns combined output.
@@ -60,4 +61,11 @@ func SosReport(nodeName, caseID string) (string, error) {
 		return "", fmt.Errorf("sosreport failed: %w: %s", err, out)
 	}
 	return string(out), nil
+}
+
+// Crictl runs `crictl` inside a debug pod on the specified node with the given arguments.
+// The args slice corresponds to command-line arguments after "crictl".
+func Crictl(nodeName string, args []string) (string, error) {
+	cmd := fmt.Sprintf("crictl %s", strings.Join(args, " "))
+	return DebugNode(nodeName, cmd)
 }

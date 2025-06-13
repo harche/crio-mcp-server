@@ -45,3 +45,23 @@ Arguments:
 - `node_name` (string, required) – node from which to gather the report
 - `case_id` (string) – optional support case identifier passed to `sosreport`
 
+### `run_crictl`
+Runs `crictl` inside a debug pod to interact directly with the node's container runtime. Use the `-h` flag on any subcommand for help.
+
+crictl is the lightweight command-line client from the cri-tools project that
+speaks the Kubernetes Container Runtime Interface (CRI) directly.  Because it
+talks to the node’s container runtime (CRI-O, containerd, etc.) over the local
+/var/run/<runtime>.sock, it works even when kubelet or the API server are
+unhealthy.  Common commands include `crictl ps` and `crictl pods` to list
+running containers or sandboxes, `crictl inspect`/`inspectp` for JSON-formatted
+metadata, `crictl logs` to read container stdout, `crictl exec` for a shell,
+`crictl images` and `crictl pull` to manage images, `crictl stats` for live CPU
+and memory usage, and `crictl runp|create|start` to launch test sandboxes.
+Because it bypasses Kubernetes control-plane layers, crictl is the first tool
+engineers reach for when debugging low-level runtime or cgroup issues on an
+OpenShift node.
+
+Arguments:
+- `node_name` (string, required) – node on which to run the command
+- `args` (array of string) – arguments forwarded to `crictl` (defaults to `ps`)
+

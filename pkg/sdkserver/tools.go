@@ -83,6 +83,25 @@ oc adm must-gather can scoop up almost every artifact engineers or support need 
 	),
 )
 
+// crictlTool defines the run_crictl MCP tool.
+var crictlTool = mcp.NewTool(
+	"run_crictl",
+	mcp.WithTitleAnnotation("Run crictl on a node"),
+	mcp.WithDescription(`Executes "crictl" inside an OpenShift debug pod on the specified node.
+
+crictl is the lightweight command-line client from the cri-tools project that speaks the Kubernetes Container Runtime Interface (CRI) directly. Because it talks to the node's container runtime (CRI-O, containerd, etc.) over the local /var/run/<runtime>.sock, it works even when kubelet or the API server are unhealthy. Common commands include "crictl ps" and "crictl pods" to list running containers or sandboxes, "crictl inspect"/"inspectp" for JSON-formatted metadata, "crictl logs" to read container stdout, "crictl exec" for a shell, "crictl images" and "crictl pull" to manage images, "crictl stats" for live CPU and memory usage, and "crictl runp|create|start" to launch test sandboxes. Because it bypasses Kubernetes control-plane layers, crictl is the first tool engineers reach for when debugging low-level runtime or cgroup issues on an OpenShift node.
+
+Use the -h flag to discover available subcommands.`),
+	mcp.WithString("node_name",
+		mcp.Description("Node on which to run crictl"),
+		mcp.Required(),
+	),
+	mcp.WithArray("args",
+		mcp.Description("Arguments passed directly to crictl (default: ['ps'])"),
+		mcp.Items(map[string]any{"type": "string"}),
+	),
+)
+
 // handleDebugNode executes oc debug with the provided arguments.
 func handleDebugNode(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	nodeName, err := req.RequireString("node_name")
@@ -145,6 +164,27 @@ func handleMustGather(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 		extras[i] = fmt.Sprint(a)
 	}
 	out, err := openshift.MustGather(dest, extras)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultText(out), nil
+}
+
+// handleCrictl runs crictl commands on a node via oc debug.
+func handleCrictl(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	nodeName, err := req.RequireString("node_name")
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	argsAny, _ := req.GetArguments()["args"].([]any)
+	args := make([]string, len(argsAny))
+	for i, a := range argsAny {
+		args[i] = fmt.Sprint(a)
+	}
+	if len(args) == 0 {
+		args = []string{"ps"}
+	}
+	out, err := openshift.Crictl(nodeName, args)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
