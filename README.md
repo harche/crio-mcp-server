@@ -27,4 +27,18 @@ Runs `go tool pprof` with the supplied arguments to inspect CPU or memory profil
 Arguments:
 - `args` (array of string, required) – command-line arguments passed directly to `go tool pprof`
 
+### `collect_must_gather`
+Runs `oc adm must-gather` to capture cluster information. Create a temporary directory and pass it using `dest_dir` to keep all gathered data in one location. Explore `oc adm must-gather -h` for the full set of options.
+
+Arguments:
+- `dest_dir` (string) – local directory where the must-gather output is stored
+- `extra_args` (array of string) – additional flags forwarded to `oc adm must-gather`
+
 These helpers can be integrated into a custom MCP server or used directly with the `mcp-go` SDK.
+
+### `collect_sosreport`
+Runs `sosreport` inside a debug pod using toolbox. This captures detailed diagnostics from a node. Provide a Red Hat case ID if available.
+
+Arguments:
+- `node_name` (string, required) – node from which to gather the report
+- `case_id` (string) – optional support case identifier passed to `sosreport`
