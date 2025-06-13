@@ -9,6 +9,7 @@ service MCPService {
   rpc GetRuntimeStatus(Empty) returns (RuntimeStatusResponse);
   rpc ListContainers(Empty) returns (ContainersResponse);
   rpc InspectContainer(ContainerRequest) returns (ContainerInspectResponse);
+  rpc GetContainerStats(ContainerRequest) returns (ContainerStatsResponse);
 }
 
 message Empty {}
@@ -31,4 +32,9 @@ message ContainerRequest {
 
 message ContainerInspectResponse {
   string info = 1;
+}
+
+message ContainerStatsResponse {
+  uint64 cpu_usage_usec = 1;
+  uint64 memory_usage_bytes = 2;
 }
