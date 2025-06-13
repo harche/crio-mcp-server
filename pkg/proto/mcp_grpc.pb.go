@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	MCPService_GetCrioConfig_FullMethodName     = "/mcp.MCPService/GetCrioConfig"
-	MCPService_GetRuntimeStatus_FullMethodName  = "/mcp.MCPService/GetRuntimeStatus"
-	MCPService_ListContainers_FullMethodName    = "/mcp.MCPService/ListContainers"
-	MCPService_InspectContainer_FullMethodName  = "/mcp.MCPService/InspectContainer"
-	MCPService_GetContainerStats_FullMethodName = "/mcp.MCPService/GetContainerStats"
+	MCPService_GetCrioConfig_FullMethodName      = "/mcp.MCPService/GetCrioConfig"
+	MCPService_GetRuntimeStatus_FullMethodName   = "/mcp.MCPService/GetRuntimeStatus"
+	MCPService_ListContainers_FullMethodName     = "/mcp.MCPService/ListContainers"
+	MCPService_InspectContainer_FullMethodName   = "/mcp.MCPService/InspectContainer"
+	MCPService_GetContainerStats_FullMethodName  = "/mcp.MCPService/GetContainerStats"
+	MCPService_GetContainerConfig_FullMethodName = "/mcp.MCPService/GetContainerConfig"
 )
 
 // MCPServiceClient is the client API for MCPService service.
@@ -35,6 +36,7 @@ type MCPServiceClient interface {
 	ListContainers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ContainersResponse, error)
 	InspectContainer(ctx context.Context, in *ContainerRequest, opts ...grpc.CallOption) (*ContainerInspectResponse, error)
 	GetContainerStats(ctx context.Context, in *ContainerRequest, opts ...grpc.CallOption) (*ContainerStatsResponse, error)
+	GetContainerConfig(ctx context.Context, in *ContainerRequest, opts ...grpc.CallOption) (*ContainerConfigResponse, error)
 }
 
 type mCPServiceClient struct {
@@ -90,6 +92,15 @@ func (c *mCPServiceClient) GetContainerStats(ctx context.Context, in *ContainerR
 	return out, nil
 }
 
+func (c *mCPServiceClient) GetContainerConfig(ctx context.Context, in *ContainerRequest, opts ...grpc.CallOption) (*ContainerConfigResponse, error) {
+	out := new(ContainerConfigResponse)
+	err := c.cc.Invoke(ctx, MCPService_GetContainerConfig_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MCPServiceServer is the server API for MCPService service.
 // All implementations must embed UnimplementedMCPServiceServer
 // for forward compatibility
@@ -99,6 +110,7 @@ type MCPServiceServer interface {
 	ListContainers(context.Context, *Empty) (*ContainersResponse, error)
 	InspectContainer(context.Context, *ContainerRequest) (*ContainerInspectResponse, error)
 	GetContainerStats(context.Context, *ContainerRequest) (*ContainerStatsResponse, error)
+	GetContainerConfig(context.Context, *ContainerRequest) (*ContainerConfigResponse, error)
 	mustEmbedUnimplementedMCPServiceServer()
 }
 
@@ -120,6 +132,9 @@ func (UnimplementedMCPServiceServer) InspectContainer(context.Context, *Containe
 }
 func (UnimplementedMCPServiceServer) GetContainerStats(context.Context, *ContainerRequest) (*ContainerStatsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetContainerStats not implemented")
+}
+func (UnimplementedMCPServiceServer) GetContainerConfig(context.Context, *ContainerRequest) (*ContainerConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetContainerConfig not implemented")
 }
 func (UnimplementedMCPServiceServer) mustEmbedUnimplementedMCPServiceServer() {}
 
@@ -224,6 +239,24 @@ func _MCPService_GetContainerStats_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MCPService_GetContainerConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ContainerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MCPServiceServer).GetContainerConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MCPService_GetContainerConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MCPServiceServer).GetContainerConfig(ctx, req.(*ContainerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MCPService_ServiceDesc is the grpc.ServiceDesc for MCPService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -250,6 +283,10 @@ var MCPService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetContainerStats",
 			Handler:    _MCPService_GetContainerStats_Handler,
+		},
+		{
+			MethodName: "GetContainerConfig",
+			Handler:    _MCPService_GetContainerConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
