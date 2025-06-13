@@ -329,6 +329,50 @@ func (x *ContainerStatsResponse) GetMemoryUsageBytes() uint64 {
 	return 0
 }
 
+type ContainerConfigResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Config        string                 `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContainerConfigResponse) Reset() {
+	*x = ContainerConfigResponse{}
+	mi := &file_proto_mcp_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContainerConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContainerConfigResponse) ProtoMessage() {}
+
+func (x *ContainerConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContainerConfigResponse.ProtoReflect.Descriptor instead.
+func (*ContainerConfigResponse) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ContainerConfigResponse) GetConfig() string {
+	if x != nil {
+		return x.Config
+	}
+	return ""
+}
+
 var File_proto_mcp_proto protoreflect.FileDescriptor
 
 const file_proto_mcp_proto_rawDesc = "" +
@@ -349,7 +393,9 @@ const file_proto_mcp_proto_rawDesc = "" +
 	"\x04info\x18\x01 \x01(\tR\x04info\"l\n" +
 	"\x16ContainerStatsResponse\x12$\n" +
 	"\x0ecpu_usage_usec\x18\x01 \x01(\x04R\fcpuUsageUsec\x12,\n" +
-	"\x12memory_usage_bytes\x18\x02 \x01(\x04R\x10memoryUsageBytes2\xc8\x02\n" +
+	"\x12memory_usage_bytes\x18\x02 \x01(\x04R\x10memoryUsageBytes\"1\n" +
+	"\x17ContainerConfigResponse\x12\x16\n" +
+	"\x06config\x18\x01 \x01(\tR\x06config2\x93\x03\n" +
 	"\n" +
 	"MCPService\x124\n" +
 	"\rGetCrioConfig\x12\n" +
@@ -359,7 +405,8 @@ const file_proto_mcp_proto_rawDesc = "" +
 	"\x0eListContainers\x12\n" +
 	".mcp.Empty\x1a\x17.mcp.ContainersResponse\x12H\n" +
 	"\x10InspectContainer\x12\x15.mcp.ContainerRequest\x1a\x1d.mcp.ContainerInspectResponse\x12G\n" +
-	"\x11GetContainerStats\x12\x15.mcp.ContainerRequest\x1a\x1b.mcp.ContainerStatsResponseB-Z+github.com/harche/crio-mcp-server/pkg/protob\x06proto3"
+	"\x11GetContainerStats\x12\x15.mcp.ContainerRequest\x1a\x1b.mcp.ContainerStatsResponse\x12I\n" +
+	"\x12GetContainerConfig\x12\x15.mcp.ContainerRequest\x1a\x1c.mcp.ContainerConfigResponseB-Z+github.com/harche/crio-mcp-server/pkg/protob\x06proto3"
 
 var (
 	file_proto_mcp_proto_rawDescOnce sync.Once
@@ -373,7 +420,7 @@ func file_proto_mcp_proto_rawDescGZIP() []byte {
 	return file_proto_mcp_proto_rawDescData
 }
 
-var file_proto_mcp_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_mcp_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_proto_mcp_proto_goTypes = []any{
 	(*Empty)(nil),                    // 0: mcp.Empty
 	(*CrioConfigResponse)(nil),       // 1: mcp.CrioConfigResponse
@@ -382,6 +429,7 @@ var file_proto_mcp_proto_goTypes = []any{
 	(*ContainerRequest)(nil),         // 4: mcp.ContainerRequest
 	(*ContainerInspectResponse)(nil), // 5: mcp.ContainerInspectResponse
 	(*ContainerStatsResponse)(nil),   // 6: mcp.ContainerStatsResponse
+	(*ContainerConfigResponse)(nil),  // 7: mcp.ContainerConfigResponse
 }
 var file_proto_mcp_proto_depIdxs = []int32{
 	0, // 0: mcp.MCPService.GetCrioConfig:input_type -> mcp.Empty
@@ -389,13 +437,15 @@ var file_proto_mcp_proto_depIdxs = []int32{
 	0, // 2: mcp.MCPService.ListContainers:input_type -> mcp.Empty
 	4, // 3: mcp.MCPService.InspectContainer:input_type -> mcp.ContainerRequest
 	4, // 4: mcp.MCPService.GetContainerStats:input_type -> mcp.ContainerRequest
-	1, // 5: mcp.MCPService.GetCrioConfig:output_type -> mcp.CrioConfigResponse
-	2, // 6: mcp.MCPService.GetRuntimeStatus:output_type -> mcp.RuntimeStatusResponse
-	3, // 7: mcp.MCPService.ListContainers:output_type -> mcp.ContainersResponse
-	5, // 8: mcp.MCPService.InspectContainer:output_type -> mcp.ContainerInspectResponse
-	6, // 9: mcp.MCPService.GetContainerStats:output_type -> mcp.ContainerStatsResponse
-	5, // [5:10] is the sub-list for method output_type
-	0, // [0:5] is the sub-list for method input_type
+	4, // 5: mcp.MCPService.GetContainerConfig:input_type -> mcp.ContainerRequest
+	1, // 6: mcp.MCPService.GetCrioConfig:output_type -> mcp.CrioConfigResponse
+	2, // 7: mcp.MCPService.GetRuntimeStatus:output_type -> mcp.RuntimeStatusResponse
+	3, // 8: mcp.MCPService.ListContainers:output_type -> mcp.ContainersResponse
+	5, // 9: mcp.MCPService.InspectContainer:output_type -> mcp.ContainerInspectResponse
+	6, // 10: mcp.MCPService.GetContainerStats:output_type -> mcp.ContainerStatsResponse
+	7, // 11: mcp.MCPService.GetContainerConfig:output_type -> mcp.ContainerConfigResponse
+	6, // [6:12] is the sub-list for method output_type
+	0, // [0:6] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -412,7 +462,7 @@ func file_proto_mcp_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_mcp_proto_rawDesc), len(file_proto_mcp_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

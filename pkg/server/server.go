@@ -79,6 +79,15 @@ func (s *MCPServer) GetContainerStats(ctx context.Context, req *pb.ContainerRequ
 	}, nil
 }
 
+func (s *MCPServer) GetContainerConfig(ctx context.Context, req *pb.ContainerRequest) (*pb.ContainerConfigResponse, error) {
+	cfg, err := cri.ReadContainerConfig(req.GetId())
+	if err != nil {
+		log.Printf("read container config error: %v", err)
+		return nil, status.Errorf(codes.Internal, "container config error")
+	}
+	return &pb.ContainerConfigResponse{Config: cfg}, nil
+}
+
 func (s *MCPServer) Start(addr string) error {
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
