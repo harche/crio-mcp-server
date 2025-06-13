@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os/exec"
 
 	"github.com/harche/crio-mcp-server/pkg/openshift"
 	mcp "github.com/mark3labs/mcp-go/mcp"
@@ -52,6 +53,18 @@ var nodeLogsTool = mcp.NewTool(
 	),
 )
 
+// pprofTool defines the analyze_pprof MCP tool.
+var pprofTool = mcp.NewTool(
+	"analyze_pprof",
+	mcp.WithTitleAnnotation("Analyze Go profiles via go tool pprof"),
+	mcp.WithDescription(`Runs "go tool pprof" with the provided arguments to analyze CPU or memory profiles. Use "go tool pprof -h" for available options.`),
+	mcp.WithArray("args",
+		mcp.Description("Arguments passed directly to 'go tool pprof', e.g. ['-top', './bin', 'profile.pb.gz']"),
+		mcp.Items(map[string]any{"type": "string"}),
+		mcp.Required(),
+	),
+)
+
 // handleDebugNode executes oc debug with the provided arguments.
 func handleDebugNode(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	nodeName, err := req.RequireString("node_name")
@@ -85,4 +98,22 @@ func handleNodeLogs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTool
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 	return mcp.NewToolResultText(out), nil
+}
+
+// handlePprof runs "go tool pprof" with the provided arguments and returns the output.
+func handlePprof(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	argsAny, _ := req.GetArguments()["args"].([]any)
+	if len(argsAny) == 0 {
+		return mcp.NewToolResultError("args is required"), nil
+	}
+	args := make([]string, len(argsAny))
+	for i, a := range argsAny {
+		args[i] = fmt.Sprint(a)
+	}
+	cmd := exec.CommandContext(ctx, "go", append([]string{"tool", "pprof"}, args...)...)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return mcp.NewToolResultError(fmt.Errorf("pprof failed: %w: %s", err, out).Error()), nil
+	}
+	return mcp.NewToolResultText(string(out)), nil
 }

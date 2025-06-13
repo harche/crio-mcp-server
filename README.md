@@ -21,4 +21,10 @@ Arguments:
 - `since` (string) – RFC3339 timestamp or relative value accepted by `journalctl`
 - `compress` (bool) – if true, return logs as a gzip tarball instead of inline text
 
+### `analyze_pprof`
+Runs `go tool pprof` with the supplied arguments to inspect CPU or memory profiles. Refer to `go tool pprof -h` for the full set of options.
+
+Arguments:
+- `args` (array of string, required) – command-line arguments passed directly to `go tool pprof`
+
 These helpers can be integrated into a custom MCP server or used directly with the `mcp-go` SDK.
