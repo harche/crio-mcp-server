@@ -30,6 +30,8 @@ Arguments:
 ### `collect_must_gather`
 Runs `oc adm must-gather` to capture cluster information. Create a temporary directory and pass it using `dest_dir` to keep all gathered data in one location. Explore `oc adm must-gather -h` for the full set of options.
 
+oc adm must-gather can scoop up almost every artifact engineers or support need in a single shot: it exports the full YAML for all cluster-scoped and namespaced resources (Deployments, CRDs, Nodes, ClusterOperators, etc.); captures pod and container logs as well as systemd journal slices from each node to trace runtime crashes or OOMs; grabs API-server and OAuth audit logs for security or compliance forensics; collects kernel, cgroup, and other node sysinfo plus tuned and kubelet configs for performance tuning; optionally runs add-on scripts such as gather_network_logs to archive iptables/OVN flows and CNI pod logs, or gather_profiling_node to fetch 30-second CPU and heap pprof dumps from both kubelet and CRI-O for hotspot analysis; and, through plug-in images, can extend to operator-specific data like storage states or virtualization metrics, ensuring one reproducible tarball contains configuration, logs, network traces, performance profiles, and security audits for thorough offline debugging.
+
 Arguments:
 - `dest_dir` (string) – local directory where the must-gather output is stored
 - `extra_args` (array of string) – additional flags forwarded to `oc adm must-gather`
@@ -42,3 +44,4 @@ Runs `sosreport` inside a debug pod using toolbox. This captures detailed diagno
 Arguments:
 - `node_name` (string, required) – node from which to gather the report
 - `case_id` (string) – optional support case identifier passed to `sosreport`
+
