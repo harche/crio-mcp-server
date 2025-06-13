@@ -373,6 +373,178 @@ func (x *ContainerConfigResponse) GetConfig() string {
 	return ""
 }
 
+type LogRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Unit          string                 `protobuf:"bytes,1,opt,name=unit,proto3" json:"unit,omitempty"`
+	ContainerId   string                 `protobuf:"bytes,2,opt,name=container_id,json=containerId,proto3" json:"container_id,omitempty"`
+	Since         string                 `protobuf:"bytes,3,opt,name=since,proto3" json:"since,omitempty"`
+	Until         string                 `protobuf:"bytes,4,opt,name=until,proto3" json:"until,omitempty"`
+	Priority      string                 `protobuf:"bytes,5,opt,name=priority,proto3" json:"priority,omitempty"`
+	Tail          uint32                 `protobuf:"varint,6,opt,name=tail,proto3" json:"tail,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogRequest) Reset() {
+	*x = LogRequest{}
+	mi := &file_proto_mcp_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogRequest) ProtoMessage() {}
+
+func (x *LogRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogRequest.ProtoReflect.Descriptor instead.
+func (*LogRequest) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *LogRequest) GetUnit() string {
+	if x != nil {
+		return x.Unit
+	}
+	return ""
+}
+
+func (x *LogRequest) GetContainerId() string {
+	if x != nil {
+		return x.ContainerId
+	}
+	return ""
+}
+
+func (x *LogRequest) GetSince() string {
+	if x != nil {
+		return x.Since
+	}
+	return ""
+}
+
+func (x *LogRequest) GetUntil() string {
+	if x != nil {
+		return x.Until
+	}
+	return ""
+}
+
+func (x *LogRequest) GetPriority() string {
+	if x != nil {
+		return x.Priority
+	}
+	return ""
+}
+
+func (x *LogRequest) GetTail() uint32 {
+	if x != nil {
+		return x.Tail
+	}
+	return 0
+}
+
+type LogResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Logs          string                 `protobuf:"bytes,1,opt,name=logs,proto3" json:"logs,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogResponse) Reset() {
+	*x = LogResponse{}
+	mi := &file_proto_mcp_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogResponse) ProtoMessage() {}
+
+func (x *LogResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogResponse.ProtoReflect.Descriptor instead.
+func (*LogResponse) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *LogResponse) GetLogs() string {
+	if x != nil {
+		return x.Logs
+	}
+	return ""
+}
+
+type LogEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Line          string                 `protobuf:"bytes,1,opt,name=line,proto3" json:"line,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogEntry) Reset() {
+	*x = LogEntry{}
+	mi := &file_proto_mcp_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogEntry) ProtoMessage() {}
+
+func (x *LogEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogEntry.ProtoReflect.Descriptor instead.
+func (*LogEntry) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *LogEntry) GetLine() string {
+	if x != nil {
+		return x.Line
+	}
+	return ""
+}
+
 var File_proto_mcp_proto protoreflect.FileDescriptor
 
 const file_proto_mcp_proto_rawDesc = "" +
@@ -395,7 +567,19 @@ const file_proto_mcp_proto_rawDesc = "" +
 	"\x0ecpu_usage_usec\x18\x01 \x01(\x04R\fcpuUsageUsec\x12,\n" +
 	"\x12memory_usage_bytes\x18\x02 \x01(\x04R\x10memoryUsageBytes\"1\n" +
 	"\x17ContainerConfigResponse\x12\x16\n" +
-	"\x06config\x18\x01 \x01(\tR\x06config2\x93\x03\n" +
+	"\x06config\x18\x01 \x01(\tR\x06config\"\x9f\x01\n" +
+	"\n" +
+	"LogRequest\x12\x12\n" +
+	"\x04unit\x18\x01 \x01(\tR\x04unit\x12!\n" +
+	"\fcontainer_id\x18\x02 \x01(\tR\vcontainerId\x12\x14\n" +
+	"\x05since\x18\x03 \x01(\tR\x05since\x12\x14\n" +
+	"\x05until\x18\x04 \x01(\tR\x05until\x12\x1a\n" +
+	"\bpriority\x18\x05 \x01(\tR\bpriority\x12\x12\n" +
+	"\x04tail\x18\x06 \x01(\rR\x04tail\"!\n" +
+	"\vLogResponse\x12\x12\n" +
+	"\x04logs\x18\x01 \x01(\tR\x04logs\"\x1e\n" +
+	"\bLogEntry\x12\x12\n" +
+	"\x04line\x18\x01 \x01(\tR\x04line2\xf1\x03\n" +
 	"\n" +
 	"MCPService\x124\n" +
 	"\rGetCrioConfig\x12\n" +
@@ -406,7 +590,10 @@ const file_proto_mcp_proto_rawDesc = "" +
 	".mcp.Empty\x1a\x17.mcp.ContainersResponse\x12H\n" +
 	"\x10InspectContainer\x12\x15.mcp.ContainerRequest\x1a\x1d.mcp.ContainerInspectResponse\x12G\n" +
 	"\x11GetContainerStats\x12\x15.mcp.ContainerRequest\x1a\x1b.mcp.ContainerStatsResponse\x12I\n" +
-	"\x12GetContainerConfig\x12\x15.mcp.ContainerRequest\x1a\x1c.mcp.ContainerConfigResponseB-Z+github.com/harche/crio-mcp-server/pkg/protob\x06proto3"
+	"\x12GetContainerConfig\x12\x15.mcp.ContainerRequest\x1a\x1c.mcp.ContainerConfigResponse\x12,\n" +
+	"\aGetLogs\x12\x0f.mcp.LogRequest\x1a\x10.mcp.LogResponse\x12.\n" +
+	"\n" +
+	"StreamLogs\x12\x0f.mcp.LogRequest\x1a\r.mcp.LogEntry0\x01B-Z+github.com/harche/crio-mcp-server/pkg/protob\x06proto3"
 
 var (
 	file_proto_mcp_proto_rawDescOnce sync.Once
@@ -420,7 +607,7 @@ func file_proto_mcp_proto_rawDescGZIP() []byte {
 	return file_proto_mcp_proto_rawDescData
 }
 
-var file_proto_mcp_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_mcp_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_mcp_proto_goTypes = []any{
 	(*Empty)(nil),                    // 0: mcp.Empty
 	(*CrioConfigResponse)(nil),       // 1: mcp.CrioConfigResponse
@@ -430,25 +617,32 @@ var file_proto_mcp_proto_goTypes = []any{
 	(*ContainerInspectResponse)(nil), // 5: mcp.ContainerInspectResponse
 	(*ContainerStatsResponse)(nil),   // 6: mcp.ContainerStatsResponse
 	(*ContainerConfigResponse)(nil),  // 7: mcp.ContainerConfigResponse
+	(*LogRequest)(nil),               // 8: mcp.LogRequest
+	(*LogResponse)(nil),              // 9: mcp.LogResponse
+	(*LogEntry)(nil),                 // 10: mcp.LogEntry
 }
 var file_proto_mcp_proto_depIdxs = []int32{
-	0, // 0: mcp.MCPService.GetCrioConfig:input_type -> mcp.Empty
-	0, // 1: mcp.MCPService.GetRuntimeStatus:input_type -> mcp.Empty
-	0, // 2: mcp.MCPService.ListContainers:input_type -> mcp.Empty
-	4, // 3: mcp.MCPService.InspectContainer:input_type -> mcp.ContainerRequest
-	4, // 4: mcp.MCPService.GetContainerStats:input_type -> mcp.ContainerRequest
-	4, // 5: mcp.MCPService.GetContainerConfig:input_type -> mcp.ContainerRequest
-	1, // 6: mcp.MCPService.GetCrioConfig:output_type -> mcp.CrioConfigResponse
-	2, // 7: mcp.MCPService.GetRuntimeStatus:output_type -> mcp.RuntimeStatusResponse
-	3, // 8: mcp.MCPService.ListContainers:output_type -> mcp.ContainersResponse
-	5, // 9: mcp.MCPService.InspectContainer:output_type -> mcp.ContainerInspectResponse
-	6, // 10: mcp.MCPService.GetContainerStats:output_type -> mcp.ContainerStatsResponse
-	7, // 11: mcp.MCPService.GetContainerConfig:output_type -> mcp.ContainerConfigResponse
-	6, // [6:12] is the sub-list for method output_type
-	0, // [0:6] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0,  // 0: mcp.MCPService.GetCrioConfig:input_type -> mcp.Empty
+	0,  // 1: mcp.MCPService.GetRuntimeStatus:input_type -> mcp.Empty
+	0,  // 2: mcp.MCPService.ListContainers:input_type -> mcp.Empty
+	4,  // 3: mcp.MCPService.InspectContainer:input_type -> mcp.ContainerRequest
+	4,  // 4: mcp.MCPService.GetContainerStats:input_type -> mcp.ContainerRequest
+	4,  // 5: mcp.MCPService.GetContainerConfig:input_type -> mcp.ContainerRequest
+	8,  // 6: mcp.MCPService.GetLogs:input_type -> mcp.LogRequest
+	8,  // 7: mcp.MCPService.StreamLogs:input_type -> mcp.LogRequest
+	1,  // 8: mcp.MCPService.GetCrioConfig:output_type -> mcp.CrioConfigResponse
+	2,  // 9: mcp.MCPService.GetRuntimeStatus:output_type -> mcp.RuntimeStatusResponse
+	3,  // 10: mcp.MCPService.ListContainers:output_type -> mcp.ContainersResponse
+	5,  // 11: mcp.MCPService.InspectContainer:output_type -> mcp.ContainerInspectResponse
+	6,  // 12: mcp.MCPService.GetContainerStats:output_type -> mcp.ContainerStatsResponse
+	7,  // 13: mcp.MCPService.GetContainerConfig:output_type -> mcp.ContainerConfigResponse
+	9,  // 14: mcp.MCPService.GetLogs:output_type -> mcp.LogResponse
+	10, // 15: mcp.MCPService.StreamLogs:output_type -> mcp.LogEntry
+	8,  // [8:16] is the sub-list for method output_type
+	0,  // [0:8] is the sub-list for method input_type
+	0,  // [0:0] is the sub-list for extension type_name
+	0,  // [0:0] is the sub-list for extension extendee
+	0,  // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_proto_mcp_proto_init() }
@@ -462,7 +656,7 @@ func file_proto_mcp_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_mcp_proto_rawDesc), len(file_proto_mcp_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

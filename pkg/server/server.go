@@ -5,9 +5,11 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 
 	"github.com/harche/crio-mcp-server/pkg/cgroup"
 	"github.com/harche/crio-mcp-server/pkg/cri"
+	"github.com/harche/crio-mcp-server/pkg/journal"
 	pb "github.com/harche/crio-mcp-server/pkg/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -86,6 +88,63 @@ func (s *MCPServer) GetContainerConfig(ctx context.Context, req *pb.ContainerReq
 		return nil, status.Errorf(codes.Internal, "container config error")
 	}
 	return &pb.ContainerConfigResponse{Config: cfg}, nil
+}
+
+func parseTime(val string) (time.Time, error) {
+	if val == "" {
+		return time.Time{}, nil
+	}
+	t, err := time.Parse(time.RFC3339, val)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return t, nil
+}
+
+func (s *MCPServer) GetLogs(ctx context.Context, req *pb.LogRequest) (*pb.LogResponse, error) {
+	since, err := parseTime(req.GetSince())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid since")
+	}
+	until, err := parseTime(req.GetUntil())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid until")
+	}
+	logs, err := journal.ReadLogs(journal.Options{
+		Unit:        req.GetUnit(),
+		ContainerID: req.GetContainerId(),
+		Since:       since,
+		Until:       until,
+		Priority:    req.GetPriority(),
+		Limit:       int(req.GetTail()),
+	})
+	if err != nil {
+		log.Printf("log fetch error: %v", err)
+		return nil, status.Errorf(codes.Internal, "log fetch error")
+	}
+	return &pb.LogResponse{Logs: logs}, nil
+}
+
+func (s *MCPServer) StreamLogs(req *pb.LogRequest, stream pb.MCPService_StreamLogsServer) error {
+	since, err := parseTime(req.GetSince())
+	if err != nil {
+		return status.Errorf(codes.InvalidArgument, "invalid since")
+	}
+	until, err := parseTime(req.GetUntil())
+	if err != nil {
+		return status.Errorf(codes.InvalidArgument, "invalid until")
+	}
+	opts := journal.Options{
+		Unit:        req.GetUnit(),
+		ContainerID: req.GetContainerId(),
+		Since:       since,
+		Until:       until,
+		Priority:    req.GetPriority(),
+		Follow:      true,
+	}
+	return journal.StreamLogs(opts, func(line string) error {
+		return stream.Send(&pb.LogEntry{Line: line})
+	})
 }
 
 func (s *MCPServer) Start(addr string) error {

@@ -25,6 +25,8 @@ const (
 	MCPService_InspectContainer_FullMethodName   = "/mcp.MCPService/InspectContainer"
 	MCPService_GetContainerStats_FullMethodName  = "/mcp.MCPService/GetContainerStats"
 	MCPService_GetContainerConfig_FullMethodName = "/mcp.MCPService/GetContainerConfig"
+	MCPService_GetLogs_FullMethodName            = "/mcp.MCPService/GetLogs"
+	MCPService_StreamLogs_FullMethodName         = "/mcp.MCPService/StreamLogs"
 )
 
 // MCPServiceClient is the client API for MCPService service.
@@ -37,6 +39,8 @@ type MCPServiceClient interface {
 	InspectContainer(ctx context.Context, in *ContainerRequest, opts ...grpc.CallOption) (*ContainerInspectResponse, error)
 	GetContainerStats(ctx context.Context, in *ContainerRequest, opts ...grpc.CallOption) (*ContainerStatsResponse, error)
 	GetContainerConfig(ctx context.Context, in *ContainerRequest, opts ...grpc.CallOption) (*ContainerConfigResponse, error)
+	GetLogs(ctx context.Context, in *LogRequest, opts ...grpc.CallOption) (*LogResponse, error)
+	StreamLogs(ctx context.Context, in *LogRequest, opts ...grpc.CallOption) (MCPService_StreamLogsClient, error)
 }
 
 type mCPServiceClient struct {
@@ -101,6 +105,47 @@ func (c *mCPServiceClient) GetContainerConfig(ctx context.Context, in *Container
 	return out, nil
 }
 
+func (c *mCPServiceClient) GetLogs(ctx context.Context, in *LogRequest, opts ...grpc.CallOption) (*LogResponse, error) {
+	out := new(LogResponse)
+	err := c.cc.Invoke(ctx, MCPService_GetLogs_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mCPServiceClient) StreamLogs(ctx context.Context, in *LogRequest, opts ...grpc.CallOption) (MCPService_StreamLogsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &MCPService_ServiceDesc.Streams[0], MCPService_StreamLogs_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &mCPServiceStreamLogsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type MCPService_StreamLogsClient interface {
+	Recv() (*LogEntry, error)
+	grpc.ClientStream
+}
+
+type mCPServiceStreamLogsClient struct {
+	grpc.ClientStream
+}
+
+func (x *mCPServiceStreamLogsClient) Recv() (*LogEntry, error) {
+	m := new(LogEntry)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // MCPServiceServer is the server API for MCPService service.
 // All implementations must embed UnimplementedMCPServiceServer
 // for forward compatibility
@@ -111,6 +156,8 @@ type MCPServiceServer interface {
 	InspectContainer(context.Context, *ContainerRequest) (*ContainerInspectResponse, error)
 	GetContainerStats(context.Context, *ContainerRequest) (*ContainerStatsResponse, error)
 	GetContainerConfig(context.Context, *ContainerRequest) (*ContainerConfigResponse, error)
+	GetLogs(context.Context, *LogRequest) (*LogResponse, error)
+	StreamLogs(*LogRequest, MCPService_StreamLogsServer) error
 	mustEmbedUnimplementedMCPServiceServer()
 }
 
@@ -135,6 +182,12 @@ func (UnimplementedMCPServiceServer) GetContainerStats(context.Context, *Contain
 }
 func (UnimplementedMCPServiceServer) GetContainerConfig(context.Context, *ContainerRequest) (*ContainerConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetContainerConfig not implemented")
+}
+func (UnimplementedMCPServiceServer) GetLogs(context.Context, *LogRequest) (*LogResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLogs not implemented")
+}
+func (UnimplementedMCPServiceServer) StreamLogs(*LogRequest, MCPService_StreamLogsServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamLogs not implemented")
 }
 func (UnimplementedMCPServiceServer) mustEmbedUnimplementedMCPServiceServer() {}
 
@@ -257,6 +310,45 @@ func _MCPService_GetContainerConfig_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MCPService_GetLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MCPServiceServer).GetLogs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MCPService_GetLogs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MCPServiceServer).GetLogs(ctx, req.(*LogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MCPService_StreamLogs_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(LogRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(MCPServiceServer).StreamLogs(m, &mCPServiceStreamLogsServer{stream})
+}
+
+type MCPService_StreamLogsServer interface {
+	Send(*LogEntry) error
+	grpc.ServerStream
+}
+
+type mCPServiceStreamLogsServer struct {
+	grpc.ServerStream
+}
+
+func (x *mCPServiceStreamLogsServer) Send(m *LogEntry) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // MCPService_ServiceDesc is the grpc.ServiceDesc for MCPService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -288,7 +380,17 @@ var MCPService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetContainerConfig",
 			Handler:    _MCPService_GetContainerConfig_Handler,
 		},
+		{
+			MethodName: "GetLogs",
+			Handler:    _MCPService_GetLogs_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "StreamLogs",
+			Handler:       _MCPService_StreamLogs_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "proto/mcp.proto",
 }
