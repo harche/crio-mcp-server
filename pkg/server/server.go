@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/harche/crio-mcp-server/pkg/cgroup"
 	"github.com/harche/crio-mcp-server/pkg/cri"
 	pb "github.com/harche/crio-mcp-server/pkg/proto"
 	"google.golang.org/grpc"
@@ -57,6 +58,25 @@ func (s *MCPServer) InspectContainer(ctx context.Context, req *pb.ContainerReque
 		return nil, status.Errorf(codes.Internal, "inspect container error")
 	}
 	return &pb.ContainerInspectResponse{Info: out}, nil
+}
+
+func (s *MCPServer) GetContainerStats(ctx context.Context, req *pb.ContainerRequest) (*pb.ContainerStatsResponse, error) {
+	info, err := s.runtime.InspectContainer(req.GetId())
+	if err != nil {
+		log.Printf("inspect container error: %v", err)
+		return nil, status.Errorf(codes.Internal, "inspect container error")
+	}
+
+	stats, err := cgroup.StatsFromInspect(info)
+	if err != nil {
+		log.Printf("stats error: %v", err)
+		return nil, status.Errorf(codes.Internal, "stats error")
+	}
+
+	return &pb.ContainerStatsResponse{
+		CpuUsageUsec:     stats.CPUUsageUSec,
+		MemoryUsageBytes: stats.MemoryUsageBytes,
+	}, nil
 }
 
 func (s *MCPServer) Start(addr string) error {
