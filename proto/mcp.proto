@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package mcp;
+
+option go_package = "github.com/harche/crio-mcp-server/pkg/proto";
+
+service MCPService {
+  rpc GetCrioConfig(Empty) returns (CrioConfigResponse);
+}
+
+message Empty {}
+
+message CrioConfigResponse {
+  string config = 1;
+}
