@@ -11,6 +11,8 @@ service MCPService {
   rpc InspectContainer(ContainerRequest) returns (ContainerInspectResponse);
   rpc GetContainerStats(ContainerRequest) returns (ContainerStatsResponse);
   rpc GetContainerConfig(ContainerRequest) returns (ContainerConfigResponse);
+  rpc GetLogs(LogRequest) returns (LogResponse);
+  rpc StreamLogs(LogRequest) returns (stream LogEntry);
 }
 
 message Empty {}
@@ -42,4 +44,21 @@ message ContainerStatsResponse {
 
 message ContainerConfigResponse {
   string config = 1;
+}
+
+message LogRequest {
+  string unit = 1;
+  string container_id = 2;
+  string since = 3;
+  string until = 4;
+  string priority = 5;
+  uint32 tail = 6;
+}
+
+message LogResponse {
+  string logs = 1;
+}
+
+message LogEntry {
+  string line = 1;
 }
