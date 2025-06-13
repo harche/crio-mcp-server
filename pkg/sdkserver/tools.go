@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"strings"
 
 	"github.com/harche/crio-mcp-server/pkg/openshift"
 	mcp "github.com/mark3labs/mcp-go/mcp"
@@ -102,6 +103,23 @@ Use the -h flag to discover available subcommands.`),
 	),
 )
 
+// cgroupfsTool defines the traverse_cgroupfs MCP tool.
+var cgroupfsTool = mcp.NewTool(
+	"traverse_cgroupfs",
+	mcp.WithTitleAnnotation("Traverse cgroupfs on a node"),
+	mcp.WithDescription(`Drops an oc debug pod onto the node, chroots into the host rootfs and walks the unified cgroup-v2 hierarchy under /sys/fs/cgroup/kubepods.slice.
+
+Cgroup files are the ground truth for how the Linux kernel enforces every pod's CPU, memory, I/O and PIDs limits. Reading cpu.max, memory.max, io.stat, pids.max or pressure-stall metrics straight from /sys/fs/cgroup/kubepods.slice/... lets you verify that the values the kubelet intended actually reached the kernel; spot runaway memory or CPU throttling even when metrics-server is down; correlate CRI-O OOM-kills with misconfigured requests; and confirm that topology-aware features like CPU Manager wrote the right cpuset.cpus mask.`),
+	mcp.WithString("node_name",
+		mcp.Description("Node whose cgroupfs should be inspected"),
+		mcp.Required(),
+	),
+	mcp.WithArray("commands",
+		mcp.Description("Shell commands executed inside the debug pod (default: list memory.current for all pods)"),
+		mcp.Items(map[string]any{"type": "string"}),
+	),
+)
+
 // handleDebugNode executes oc debug with the provided arguments.
 func handleDebugNode(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	nodeName, err := req.RequireString("node_name")
@@ -185,6 +203,30 @@ func handleCrictl(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRe
 		args = []string{"ps"}
 	}
 	out, err := openshift.Crictl(nodeName, args)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultText(out), nil
+}
+
+// handleTraverseCgroupfs walks the cgroup hierarchy on a node via oc debug.
+func handleTraverseCgroupfs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	nodeName, err := req.RequireString("node_name")
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	cmdsAny, _ := req.GetArguments()["commands"].([]any)
+	var script string
+	if len(cmdsAny) == 0 {
+		script = "find /sys/fs/cgroup/kubepods.slice -name memory.current | xargs grep -H ."
+	} else {
+		cmds := make([]string, len(cmdsAny))
+		for i, c := range cmdsAny {
+			cmds[i] = fmt.Sprint(c)
+		}
+		script = strings.Join(cmds, " && ")
+	}
+	out, err := openshift.DebugNode(nodeName, script)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}

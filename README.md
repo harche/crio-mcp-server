@@ -65,3 +65,12 @@ Arguments:
 - `node_name` (string, required) – node on which to run the command
 - `args` (array of string) – arguments forwarded to `crictl` (defaults to `ps`)
 
+### `traverse_cgroupfs`
+Drops a debug pod onto a node and walks its unified cgroup-v2 hierarchy. By default it lists `memory.current` for every pod under `/sys/fs/cgroup/kubepods.slice`, but you can supply custom commands to inspect other files.
+
+Cgroup files are the ground truth for how the Linux kernel enforces every pod’s CPU, memory, I/O and PIDs limits. Reading `cpu.max`, `memory.max`, `io.stat`, `pids.max` or pressure-stall metrics straight from `/sys/fs/cgroup/kubepods.slice/...` lets you verify that the values the kubelet intended actually reached the kernel; spot runaway memory or CPU throttling even when metrics-server is down; correlate CRI-O OOM-kills with mis-configured requests; and confirm that topology-aware features like CPU Manager wrote the right `cpuset.cpus` mask.
+
+Arguments:
+- `node_name` (string, required) – node whose cgroupfs should be inspected
+- `commands` (array of string) – optional shell commands to run inside the debug pod
+
