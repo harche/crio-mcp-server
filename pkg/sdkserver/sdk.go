@@ -14,7 +14,12 @@ func New(configPath string) *mcpserver.MCPServer {
 		mcpserver.WithToolCapabilities(false),
 	)
 
-	// TODO: register tools and resources using configPath
+	// Register tools
+	srv.AddTools(
+		mcpserver.ServerTool{Tool: debugNodeTool, Handler: handleDebugNode},
+		mcpserver.ServerTool{Tool: nodeLogsTool, Handler: handleNodeLogs},
+	)
+
 	_ = configPath
 
 	return srv
