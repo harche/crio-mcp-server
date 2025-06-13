@@ -71,7 +71,9 @@ var mustGatherTool = mcp.NewTool(
 	mcp.WithTitleAnnotation("Collect cluster data via oc adm must-gather"),
 	mcp.WithDescription(`Runs "oc adm must-gather" to capture debugging information.
 
-Create a temporary directory and pass it using the --dest-dir option to store the output in a single place.`),
+Create a temporary directory and pass it using the --dest-dir option to store the output in a single place.
+
+oc adm must-gather can scoop up almost every artifact engineers or support need in a single shot: it exports the full YAML for all cluster-scoped and namespaced resources (Deployments, CRDs, Nodes, ClusterOperators, etc.); captures pod and container logs as well as systemd journal slices from each node to trace runtime crashes or OOMs; grabs API-server and OAuth audit logs for security or compliance forensics; collects kernel, cgroup, and other node sysinfo plus tuned and kubelet configs for performance tuning; optionally runs add-on scripts such as gather_network_logs to archive iptables/OVN flows and CNI pod logs, or gather_profiling_node to fetch 30-second CPU and heap pprof dumps from both kubelet and CRI-O for hotspot analysis; and, through plug-in images, can extend to operator-specific data like storage states or virtualization metrics, ensuring one reproducible tarball contains configuration, logs, network traces, performance profiles, and security audits for thorough offline debugging.`),
 	mcp.WithString("dest_dir",
 		mcp.Description("Directory to write gathered data"),
 	),
