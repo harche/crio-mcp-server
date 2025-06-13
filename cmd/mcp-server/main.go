@@ -1,7 +1,19 @@
 package main
 
-import "fmt"
+import (
+	"flag"
+	"log"
+
+	"github.com/harche/crio-mcp-server/pkg/server"
+)
 
 func main() {
-	fmt.Println("mcp-server is under construction")
+	addr := flag.String("listen", ":50051", "address to listen on")
+	config := flag.String("config", "/etc/crio/crio.conf", "path to CRI-O config")
+	flag.Parse()
+
+	srv := server.New(*config)
+	if err := srv.Start(*addr); err != nil {
+		log.Fatalf("server error: %v", err)
+	}
 }
