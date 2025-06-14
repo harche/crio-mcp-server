@@ -7,14 +7,19 @@ import (
 )
 
 // run executes the oc command with given arguments and returns combined output.
-func run(args ...string) ([]byte, error) {
+//
+// It is defined as a variable to allow tests to substitute a fake implementation
+// without spawning external processes.
+// Run is used by helper functions to execute the oc command. Tests may override
+// this variable to avoid running external commands.
+var Run = func(args ...string) ([]byte, error) {
 	cmd := exec.Command("oc", args...)
 	return cmd.CombinedOutput()
 }
 
 // DebugNode runs `oc debug` for the given node and command.
 func DebugNode(nodeName, command string) (string, error) {
-	out, err := run("debug", fmt.Sprintf("node/%s", nodeName), "--", "chroot", "/host", "sh", "-c", command)
+	out, err := Run("debug", fmt.Sprintf("node/%s", nodeName), "--", "chroot", "/host", "sh", "-c", command)
 	if err != nil {
 		return "", fmt.Errorf("oc debug failed: %w: %s", err, out)
 	}
@@ -27,7 +32,7 @@ func NodeLogs(nodeName, since string) (string, error) {
 	if since != "" {
 		args = append(args, "--since", since)
 	}
-	out, err := run(args...)
+	out, err := Run(args...)
 	if err != nil {
 		return "", fmt.Errorf("oc adm node-logs failed: %w: %s", err, out)
 	}
@@ -42,7 +47,7 @@ func MustGather(destDir string, extra []string) (string, error) {
 		args = append(args, fmt.Sprintf("--dest-dir=%s", destDir))
 	}
 	args = append(args, extra...)
-	out, err := run(args...)
+	out, err := Run(args...)
 	if err != nil {
 		return "", fmt.Errorf("oc adm must-gather failed: %w: %s", err, out)
 	}
@@ -56,7 +61,7 @@ func SosReport(nodeName, caseID string) (string, error) {
 	if caseID != "" {
 		args = append(args, fmt.Sprintf("--case-id=%s", caseID))
 	}
-	out, err := run(args...)
+	out, err := Run(args...)
 	if err != nil {
 		return "", fmt.Errorf("sosreport failed: %w: %s", err, out)
 	}
@@ -78,7 +83,7 @@ func NetworkLogs(destDir string) (string, error) {
 		args = append(args, fmt.Sprintf("--dest-dir=%s", destDir))
 	}
 	args = append(args, "--", "/usr/bin/gather_network_logs")
-	out, err := run(args...)
+	out, err := Run(args...)
 	if err != nil {
 		return "", fmt.Errorf("gather_network_logs failed: %w: %s", err, out)
 	}
@@ -92,7 +97,7 @@ func ProfilingNode(destDir string) (string, error) {
 		args = append(args, fmt.Sprintf("--dest-dir=%s", destDir))
 	}
 	args = append(args, "--", "/usr/bin/gather_profiling_node")
-	out, err := run(args...)
+	out, err := Run(args...)
 	if err != nil {
 		return "", fmt.Errorf("gather_profiling_node failed: %w: %s", err, out)
 	}
@@ -101,7 +106,7 @@ func ProfilingNode(destDir string) (string, error) {
 
 // Events retrieves recent cluster events across all namespaces.
 func Events() (string, error) {
-	out, err := run("get", "events", "-A")
+	out, err := Run("get", "events", "-A")
 	if err != nil {
 		return "", fmt.Errorf("oc get events failed: %w: %s", err, out)
 	}
@@ -118,7 +123,7 @@ func PodLogs(namespace, pod, container, since string) (string, error) {
 	if since != "" {
 		args = append(args, "--since", since)
 	}
-	out, err := run(args...)
+	out, err := Run(args...)
 	if err != nil {
 		return "", fmt.Errorf("oc logs failed: %w: %s", err, out)
 	}
