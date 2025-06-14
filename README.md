@@ -74,3 +74,33 @@ Arguments:
 - `node_name` (string, required) – node whose cgroupfs should be inspected
 - `commands` (array of string) – optional shell commands to run inside the debug pod
 
+### `gather_network_logs`
+Runs the `gather_network_logs` must-gather addon to capture iptables and OVN flows along with CNI pod logs.
+
+Arguments:
+- `dest_dir` (string) – directory where the network logs are stored
+
+### `gather_profiling_node`
+Collects 30-second CPU and heap profiles from kubelet and CRI-O using the `gather_profiling_node` script.
+
+Arguments:
+- `dest_dir` (string) – directory where the profiling output is written
+
+### `collect_events`
+Fetches recent Kubernetes events from all namespaces via `oc get events -A`.
+
+### `collect_pod_logs`
+Retrieves logs from a specific pod similar to `oc logs`.
+
+Arguments:
+- `namespace` (string, required) – namespace of the pod
+- `pod_name` (string, required) – pod to read logs from
+- `container` (string) – optional container within the pod
+- `since` (string) – optional duration (e.g. `5m`) to limit logs
+
+### `collect_node_config`
+Uses `oc debug` to print kubelet and CRI-O configuration files from the node.
+
+Arguments:
+- `node_name` (string, required) – node to inspect
+
