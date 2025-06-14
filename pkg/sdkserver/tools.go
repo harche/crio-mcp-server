@@ -318,6 +318,24 @@ var eventsTool = mcp.NewTool(
 	mcp.WithDescription("Runs 'oc get events -A' to capture warnings and failures across all namespaces."),
 )
 
+// nodeMetricsTool defines the collect_node_metrics MCP tool.
+var nodeMetricsTool = mcp.NewTool(
+	"collect_node_metrics",
+	mcp.WithTitleAnnotation("Collect cluster node metrics"),
+	mcp.WithDescription("Runs 'oc adm top nodes' to fetch CPU and memory usage."),
+)
+
+// prometheusQueryTool defines the query_prometheus MCP tool.
+var prometheusQueryTool = mcp.NewTool(
+	"query_prometheus",
+	mcp.WithTitleAnnotation("Run a PromQL query"),
+	mcp.WithDescription("Proxies a query to the in-cluster Prometheus service."),
+	mcp.WithString("query",
+		mcp.Description("PromQL expression to execute"),
+		mcp.Required(),
+	),
+)
+
 // podLogsTool defines the collect_pod_logs MCP tool.
 var podLogsTool = mcp.NewTool(
 	"collect_pod_logs",
@@ -393,6 +411,28 @@ func handleEvents(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRe
 	return mcp.NewToolResultText(out), nil
 }
 
+// handleNodeMetrics retrieves metrics for all nodes.
+func handleNodeMetrics(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	out, err := openshift.NodeMetrics()
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultText(out), nil
+}
+
+// handlePrometheusQuery executes a PromQL query via PrometheusQuery.
+func handlePrometheusQuery(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	q, err := req.RequireString("query")
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	out, err := openshift.PrometheusQuery(q)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultText(out), nil
+}
+
 // handlePodLogs retrieves logs from the specified pod and container.
 func handlePodLogs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	ns, err := req.RequireString("namespace")
@@ -438,6 +478,8 @@ func RegisterTools(s *server.MCPServer) {
 		server.ServerTool{Tool: networkLogsTool, Handler: handleNetworkLogs},
 		server.ServerTool{Tool: profilingTool, Handler: handleProfilingNode},
 		server.ServerTool{Tool: eventsTool, Handler: handleEvents},
+		server.ServerTool{Tool: prometheusQueryTool, Handler: handlePrometheusQuery},
+		server.ServerTool{Tool: nodeMetricsTool, Handler: handleNodeMetrics},
 		server.ServerTool{Tool: podLogsTool, Handler: handlePodLogs},
 		server.ServerTool{Tool: nodeConfigTool, Handler: handleNodeConfig},
 	)

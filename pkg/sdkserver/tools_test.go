@@ -213,6 +213,36 @@ func TestHandleEvents(t *testing.T) {
 	})
 }
 
+func TestHandleNodeMetrics(t *testing.T) {
+	args := []string{"adm", "top", "nodes"}
+	withRunMock(t, args, "metrics", nil, func() {
+		req := mcp.CallToolRequest{Params: mcp.CallToolParams{Arguments: map[string]any{}}}
+		res, err := handleNodeMetrics(context.Background(), req)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if res.IsError || text(res) != "metrics" {
+			t.Fatalf("unexpected result: %v", text(res))
+		}
+	})
+}
+
+func TestHandlePrometheusQuery(t *testing.T) {
+	args := []string{"get", "--raw", "/api/v1/namespaces/openshift-monitoring/services/prometheus-k8s:9091/proxy/api/v1/query?query=up"}
+	withRunMock(t, args, "{\"status\":\"success\"}", nil, func() {
+		req := mcp.CallToolRequest{Params: mcp.CallToolParams{Arguments: map[string]any{
+			"query": "up",
+		}}}
+		res, err := handlePrometheusQuery(context.Background(), req)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if res.IsError || text(res) != "{\"status\":\"success\"}" {
+			t.Fatalf("unexpected result: %v", text(res))
+		}
+	})
+}
+
 func TestHandlePodLogs(t *testing.T) {
 	args := []string{"logs", "-n", "ns", "pod", "-c", "ctr", "--since", "1m"}
 	withRunMock(t, args, "p", nil, func() {

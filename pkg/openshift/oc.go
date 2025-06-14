@@ -2,6 +2,7 @@ package openshift
 
 import (
 	"fmt"
+	"net/url"
 	"os/exec"
 	"strings"
 )
@@ -153,4 +154,31 @@ func CopyFilesFromNode(nodeName string, paths []string) ([]byte, error) {
 		return nil, fmt.Errorf("oc debug failed: %w", err)
 	}
 	return out, nil
+}
+
+// NodeMetrics retrieves CPU and memory usage for all nodes using
+// `oc adm top nodes`.
+func NodeMetrics() (string, error) {
+	out, err := Run("adm", "top", "nodes")
+	if err != nil {
+		return "", fmt.Errorf("oc adm top nodes failed: %w: %s", err, out)
+	}
+	return string(out), nil
+}
+
+// PrometheusQuery executes a PromQL query against the in-cluster Prometheus
+// service using the apiserver proxy.
+func PrometheusQuery(query string) (string, error) {
+	if query == "" {
+		return "", fmt.Errorf("query required")
+	}
+	path := fmt.Sprintf(
+		"/api/v1/namespaces/openshift-monitoring/services/prometheus-k8s:9091/proxy/api/v1/query?query=%s",
+		url.QueryEscape(query),
+	)
+	out, err := Run("get", "--raw", path)
+	if err != nil {
+		return "", fmt.Errorf("oc get --raw failed: %w: %s", err, out)
+	}
+	return string(out), nil
 }
