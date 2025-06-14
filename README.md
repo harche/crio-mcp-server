@@ -10,8 +10,10 @@ Runs `oc debug` on a specified node and executes arbitrary shell commands inside
 Arguments:
 - `node_name` (string, required) – node to debug
 - `commands` (array of string) – commands executed in the pod (defaults to `journalctl --no-pager -u crio`)
-- `collect_files` (bool) – when true, files listed in `paths` are returned as resources
+- `collect_files` (bool) – when true, files listed in `paths` are returned as a tarball resource
 - `paths` (array of string) – file or directory paths to copy from the host
+
+When `collect_files` is enabled, the tool returns a `application/tar+gzip` archive containing the specified paths.
 
 ### `collect_node_logs`
 Streams systemd journal and container runtime logs from a node using `oc adm node-logs`.

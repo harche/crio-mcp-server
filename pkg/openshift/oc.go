@@ -130,3 +130,22 @@ func NodeConfig(nodeName string) (string, error) {
 	cmd := "cat /etc/kubernetes/kubelet.conf && echo --- && cat /etc/crio/crio.conf"
 	return DebugNode(nodeName, cmd)
 }
+
+// CopyFilesFromNode retrieves the specified files or directories from the node
+// and returns them as a gzip-compressed tar archive.
+func CopyFilesFromNode(nodeName string, paths []string) ([]byte, error) {
+	if len(paths) == 0 {
+		return nil, fmt.Errorf("no paths specified")
+	}
+	args := []string{"debug", fmt.Sprintf("node/%s", nodeName), "--", "chroot", "/host", "tar", "czf", "-", "--ignore-failed-read"}
+	args = append(args, paths...)
+	cmd := exec.Command("oc", args...)
+	out, err := cmd.Output()
+	if err != nil {
+		if ee, ok := err.(*exec.ExitError); ok {
+			return nil, fmt.Errorf("oc debug failed: %w: %s", err, string(ee.Stderr))
+		}
+		return nil, fmt.Errorf("oc debug failed: %w", err)
+	}
+	return out, nil
+}
