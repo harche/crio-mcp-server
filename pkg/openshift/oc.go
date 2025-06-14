@@ -8,6 +8,7 @@ import (
 )
 
 // run executes the oc command with given arguments and returns combined output.
+// The provided context governs process lifetime, enabling cancellation and timeouts.
 func run(ctx context.Context, args ...string) ([]byte, error) {
 	cmd := exec.CommandContext(ctx, "oc", args...)
 	return cmd.CombinedOutput()
