@@ -20,6 +20,7 @@ Arguments:
 - `node_name` (string, required) – target node
 - `since` (string) – RFC3339 timestamp or relative value accepted by `journalctl`
 - `compress` (bool) – if true, return logs as a gzip tarball instead of inline text
+  The zipped data is returned as a blob resource named `node-logs-<node>.txt.gz`.
 
 ### `analyze_pprof`
 Runs `go tool pprof` with the supplied arguments to inspect CPU or memory profiles. Refer to `go tool pprof -h` for the full set of options.

@@ -2,7 +2,9 @@ package sdkserver
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -148,11 +150,32 @@ func handleNodeLogs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTool
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 	since := req.GetString("since", "")
+	compressLogs := req.GetBool("compress", false)
 	out, err := openshift.NodeLogs(nodeName, since)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
-	return mcp.NewToolResultText(out), nil
+
+	if !compressLogs {
+		return mcp.NewToolResultText(out), nil
+	}
+
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	if _, err := gz.Write([]byte(out)); err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	if err := gz.Close(); err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+
+	encoded := base64.StdEncoding.EncodeToString(buf.Bytes())
+	res := mcp.BlobResourceContents{
+		URI:      fmt.Sprintf("node-logs-%s.txt.gz", nodeName),
+		MIMEType: "application/gzip",
+		Blob:     encoded,
+	}
+	return mcp.NewToolResultResource("Node logs compressed", res), nil
 }
 
 // handlePprof runs "go tool pprof" with the provided arguments and returns the output.
