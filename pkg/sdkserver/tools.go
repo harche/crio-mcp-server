@@ -9,6 +9,7 @@ import (
 
 	"github.com/harche/crio-mcp-server/pkg/openshift"
 	mcp "github.com/mark3labs/mcp-go/mcp"
+	"github.com/mark3labs/mcp-go/server"
 )
 
 // debugNodeTool defines the debug_node MCP tool.
@@ -132,7 +133,7 @@ func handleDebugNode(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToo
 	}
 	var output bytes.Buffer
 	for _, cmd := range commands {
-		out, err := openshift.DebugNode(nodeName, fmt.Sprint(cmd))
+		out, err := openshift.DebugNode(ctx, nodeName, fmt.Sprint(cmd))
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
@@ -148,7 +149,7 @@ func handleNodeLogs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTool
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 	since := req.GetString("since", "")
-	out, err := openshift.NodeLogs(nodeName, since)
+	out, err := openshift.NodeLogs(ctx, nodeName, since)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
@@ -181,7 +182,7 @@ func handleMustGather(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	for i, a := range extraAny {
 		extras[i] = fmt.Sprint(a)
 	}
-	out, err := openshift.MustGather(dest, extras)
+	out, err := openshift.MustGather(ctx, dest, extras)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
@@ -202,7 +203,7 @@ func handleCrictl(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRe
 	if len(args) == 0 {
 		args = []string{"ps"}
 	}
-	out, err := openshift.Crictl(nodeName, args)
+	out, err := openshift.Crictl(ctx, nodeName, args)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
@@ -226,7 +227,7 @@ func handleTraverseCgroupfs(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 		}
 		script = strings.Join(cmds, " && ")
 	}
-	out, err := openshift.DebugNode(nodeName, script)
+	out, err := openshift.DebugNode(ctx, nodeName, script)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
@@ -313,7 +314,7 @@ func handleSosReport(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToo
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 	caseID := req.GetString("case_id", "")
-	out, err := openshift.SosReport(nodeName, caseID)
+	out, err := openshift.SosReport(ctx, nodeName, caseID)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
@@ -323,7 +324,7 @@ func handleSosReport(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToo
 // handleNetworkLogs runs gather_network_logs via oc adm must-gather.
 func handleNetworkLogs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	dest := req.GetString("dest_dir", "")
-	out, err := openshift.NetworkLogs(dest)
+	out, err := openshift.NetworkLogs(ctx, dest)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
@@ -333,7 +334,7 @@ func handleNetworkLogs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallT
 // handleProfilingNode collects kubelet and CRI-O profiles using gather_profiling_node.
 func handleProfilingNode(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	dest := req.GetString("dest_dir", "")
-	out, err := openshift.ProfilingNode(dest)
+	out, err := openshift.ProfilingNode(ctx, dest)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
@@ -342,7 +343,7 @@ func handleProfilingNode(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 
 // handleEvents fetches recent cluster events.
 func handleEvents(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	out, err := openshift.Events()
+	out, err := openshift.Events(ctx)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
@@ -361,7 +362,7 @@ func handlePodLogs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolR
 	}
 	container := req.GetString("container", "")
 	since := req.GetString("since", "")
-	out, err := openshift.PodLogs(ns, pod, container, since)
+	out, err := openshift.PodLogs(ctx, ns, pod, container, since)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
@@ -374,9 +375,27 @@ func handleNodeConfig(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
-	out, err := openshift.NodeConfig(nodeName)
+	out, err := openshift.NodeConfig(ctx, nodeName)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 	return mcp.NewToolResultText(out), nil
+}
+
+// RegisterTools registers all available tools with the provided server.
+func RegisterTools(s *server.MCPServer) {
+	s.AddTools(
+		server.ServerTool{Tool: debugNodeTool, Handler: handleDebugNode},
+		server.ServerTool{Tool: nodeLogsTool, Handler: handleNodeLogs},
+		server.ServerTool{Tool: pprofTool, Handler: handlePprof},
+		server.ServerTool{Tool: mustGatherTool, Handler: handleMustGather},
+		server.ServerTool{Tool: crictlTool, Handler: handleCrictl},
+		server.ServerTool{Tool: cgroupfsTool, Handler: handleTraverseCgroupfs},
+		server.ServerTool{Tool: sosReportTool, Handler: handleSosReport},
+		server.ServerTool{Tool: networkLogsTool, Handler: handleNetworkLogs},
+		server.ServerTool{Tool: profilingTool, Handler: handleProfilingNode},
+		server.ServerTool{Tool: eventsTool, Handler: handleEvents},
+		server.ServerTool{Tool: podLogsTool, Handler: handlePodLogs},
+		server.ServerTool{Tool: nodeConfigTool, Handler: handleNodeConfig},
+	)
 }
