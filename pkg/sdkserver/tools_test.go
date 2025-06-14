@@ -15,7 +15,7 @@ import (
 
 func withRunMock(t *testing.T, expected []string, output string, err error, f func()) {
 	orig := openshift.Run
-	openshift.Run = func(args ...string) ([]byte, error) {
+	openshift.Run = func(ctx context.Context, args ...string) ([]byte, error) {
 		if fmt.Sprint(args) != fmt.Sprint(expected) {
 			t.Fatalf("unexpected args %v", args)
 		}

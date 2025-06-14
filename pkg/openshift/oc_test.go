@@ -1,13 +1,14 @@
 package openshift
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
 )
 
 // helper to replace run during tests
-func withRunMock(f func(args ...string) ([]byte, error), test func()) {
+func withRunMock(f func(ctx context.Context, args ...string) ([]byte, error), test func()) {
 	orig := Run
 	Run = f
 	defer func() { Run = orig }()
@@ -16,13 +17,13 @@ func withRunMock(f func(args ...string) ([]byte, error), test func()) {
 
 func TestNetworkLogs(t *testing.T) {
 	expected := []string{"adm", "must-gather", "--dest-dir=test", "--", "/usr/bin/gather_network_logs"}
-	withRunMock(func(args ...string) ([]byte, error) {
+	withRunMock(func(ctx context.Context, args ...string) ([]byte, error) {
 		if fmt.Sprint(args) != fmt.Sprint(expected) {
 			t.Fatalf("unexpected args %v", args)
 		}
 		return []byte("logs"), nil
 	}, func() {
-		out, err := NetworkLogs("test")
+		out, err := NetworkLogs(context.Background(), "test")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -33,10 +34,10 @@ func TestNetworkLogs(t *testing.T) {
 }
 
 func TestNetworkLogsError(t *testing.T) {
-	withRunMock(func(args ...string) ([]byte, error) {
+	withRunMock(func(ctx context.Context, args ...string) ([]byte, error) {
 		return []byte("bad"), errors.New("failure")
 	}, func() {
-		out, err := NetworkLogs("")
+		out, err := NetworkLogs(context.Background(), "")
 		if err == nil {
 			t.Fatal("expected error")
 		}
@@ -48,13 +49,13 @@ func TestNetworkLogsError(t *testing.T) {
 
 func TestProfilingNode(t *testing.T) {
 	expected := []string{"adm", "must-gather", "--dest-dir=/tmp", "--", "/usr/bin/gather_profiling_node"}
-	withRunMock(func(args ...string) ([]byte, error) {
+	withRunMock(func(ctx context.Context, args ...string) ([]byte, error) {
 		if fmt.Sprint(args) != fmt.Sprint(expected) {
 			t.Fatalf("unexpected args %v", args)
 		}
 		return []byte("prof"), nil
 	}, func() {
-		out, err := ProfilingNode("/tmp")
+		out, err := ProfilingNode(context.Background(), "/tmp")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -66,13 +67,13 @@ func TestProfilingNode(t *testing.T) {
 
 func TestEvents(t *testing.T) {
 	expected := []string{"get", "events", "-A"}
-	withRunMock(func(args ...string) ([]byte, error) {
+	withRunMock(func(ctx context.Context, args ...string) ([]byte, error) {
 		if fmt.Sprint(args) != fmt.Sprint(expected) {
 			t.Fatalf("unexpected args %v", args)
 		}
 		return []byte("events"), nil
 	}, func() {
-		out, err := Events()
+		out, err := Events(context.Background())
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -84,13 +85,13 @@ func TestEvents(t *testing.T) {
 
 func TestPodLogs(t *testing.T) {
 	expected := []string{"logs", "-n", "ns", "pod", "-c", "ctr", "--since", "2h"}
-	withRunMock(func(args ...string) ([]byte, error) {
+	withRunMock(func(ctx context.Context, args ...string) ([]byte, error) {
 		if fmt.Sprint(args) != fmt.Sprint(expected) {
 			t.Fatalf("unexpected args %v", args)
 		}
 		return []byte("pod logs"), nil
 	}, func() {
-		out, err := PodLogs("ns", "pod", "ctr", "2h")
+		out, err := PodLogs(context.Background(), "ns", "pod", "ctr", "2h")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -102,13 +103,13 @@ func TestPodLogs(t *testing.T) {
 
 func TestNodeConfig(t *testing.T) {
 	expected := []string{"debug", "node/testnode", "--", "chroot", "/host", "sh", "-c", "cat /etc/kubernetes/kubelet.conf && echo --- && cat /etc/crio/crio.conf"}
-	withRunMock(func(args ...string) ([]byte, error) {
+	withRunMock(func(ctx context.Context, args ...string) ([]byte, error) {
 		if fmt.Sprint(args) != fmt.Sprint(expected) {
 			t.Fatalf("unexpected args %v", args)
 		}
 		return []byte("cfg"), nil
 	}, func() {
-		out, err := NodeConfig("testnode")
+		out, err := NodeConfig(context.Background(), "testnode")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -120,13 +121,13 @@ func TestNodeConfig(t *testing.T) {
 
 func TestNodeMetrics(t *testing.T) {
 	expected := []string{"adm", "top", "nodes"}
-	withRunMock(func(args ...string) ([]byte, error) {
+	withRunMock(func(ctx context.Context, args ...string) ([]byte, error) {
 		if fmt.Sprint(args) != fmt.Sprint(expected) {
 			t.Fatalf("unexpected args %v", args)
 		}
 		return []byte("metrics"), nil
 	}, func() {
-		out, err := NodeMetrics()
+		out, err := NodeMetrics(context.Background())
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -138,13 +139,13 @@ func TestNodeMetrics(t *testing.T) {
 
 func TestPrometheusQuery(t *testing.T) {
 	expected := []string{"get", "--raw", "/api/v1/namespaces/openshift-monitoring/services/prometheus-k8s:9091/proxy/api/v1/query?query=up"}
-	withRunMock(func(args ...string) ([]byte, error) {
+	withRunMock(func(ctx context.Context, args ...string) ([]byte, error) {
 		if fmt.Sprint(args) != fmt.Sprint(expected) {
 			t.Fatalf("unexpected args %v", args)
 		}
 		return []byte("{\"status\":\"success\"}"), nil
 	}, func() {
-		out, err := PrometheusQuery("up")
+		out, err := PrometheusQuery(context.Background(), "up")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
