@@ -69,3 +69,64 @@ func Crictl(nodeName string, args []string) (string, error) {
 	cmd := fmt.Sprintf("crictl %s", strings.Join(args, " "))
 	return DebugNode(nodeName, cmd)
 }
+
+// NetworkLogs runs the gather_network_logs must-gather addon.
+// It accepts an optional destination directory where the results are written.
+func NetworkLogs(destDir string) (string, error) {
+	args := []string{"adm", "must-gather"}
+	if destDir != "" {
+		args = append(args, fmt.Sprintf("--dest-dir=%s", destDir))
+	}
+	args = append(args, "--", "/usr/bin/gather_network_logs")
+	out, err := run(args...)
+	if err != nil {
+		return "", fmt.Errorf("gather_network_logs failed: %w: %s", err, out)
+	}
+	return string(out), nil
+}
+
+// ProfilingNode collects pprof dumps from kubelet and CRI-O using gather_profiling_node.
+func ProfilingNode(destDir string) (string, error) {
+	args := []string{"adm", "must-gather"}
+	if destDir != "" {
+		args = append(args, fmt.Sprintf("--dest-dir=%s", destDir))
+	}
+	args = append(args, "--", "/usr/bin/gather_profiling_node")
+	out, err := run(args...)
+	if err != nil {
+		return "", fmt.Errorf("gather_profiling_node failed: %w: %s", err, out)
+	}
+	return string(out), nil
+}
+
+// Events retrieves recent cluster events across all namespaces.
+func Events() (string, error) {
+	out, err := run("get", "events", "-A")
+	if err != nil {
+		return "", fmt.Errorf("oc get events failed: %w: %s", err, out)
+	}
+	return string(out), nil
+}
+
+// PodLogs fetches logs from a specific pod and container.
+// Namespace and pod name are required. Container and since are optional.
+func PodLogs(namespace, pod, container, since string) (string, error) {
+	args := []string{"logs", "-n", namespace, pod}
+	if container != "" {
+		args = append(args, "-c", container)
+	}
+	if since != "" {
+		args = append(args, "--since", since)
+	}
+	out, err := run(args...)
+	if err != nil {
+		return "", fmt.Errorf("oc logs failed: %w: %s", err, out)
+	}
+	return string(out), nil
+}
+
+// NodeConfig gathers basic node configuration like kubelet and CRI-O settings.
+func NodeConfig(nodeName string) (string, error) {
+	cmd := "cat /etc/kubernetes/kubelet.conf && echo --- && cat /etc/crio/crio.conf"
+	return DebugNode(nodeName, cmd)
+}

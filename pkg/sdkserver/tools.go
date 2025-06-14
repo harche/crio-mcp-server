@@ -247,6 +247,65 @@ var sosReportTool = mcp.NewTool(
 	),
 )
 
+// networkLogsTool defines the gather_network_logs MCP tool.
+var networkLogsTool = mcp.NewTool(
+	"gather_network_logs",
+	mcp.WithTitleAnnotation("Collect network diagnostics via gather_network_logs"),
+	mcp.WithDescription(`Runs the gather_network_logs must-gather addon to capture iptables, OVN flows and CNI pod logs.`),
+	mcp.WithString("dest_dir",
+		mcp.Description("Directory to store captured logs"),
+	),
+)
+
+// profilingTool defines the gather_profiling_node MCP tool.
+var profilingTool = mcp.NewTool(
+	"gather_profiling_node",
+	mcp.WithTitleAnnotation("Collect kubelet and CRI-O profiles"),
+	mcp.WithDescription(`Runs gather_profiling_node to grab 30 second CPU and heap profiles from kubelet and CRI-O.`),
+	mcp.WithString("dest_dir",
+		mcp.Description("Directory to store profiling data"),
+	),
+)
+
+// eventsTool defines the collect_events MCP tool.
+var eventsTool = mcp.NewTool(
+	"collect_events",
+	mcp.WithTitleAnnotation("Retrieve recent cluster events"),
+	mcp.WithDescription("Runs 'oc get events -A' to capture warnings and failures across all namespaces."),
+)
+
+// podLogsTool defines the collect_pod_logs MCP tool.
+var podLogsTool = mcp.NewTool(
+	"collect_pod_logs",
+	mcp.WithTitleAnnotation("Collect logs from a specific pod"),
+	mcp.WithDescription("Wraps 'oc logs' to fetch logs from a pod/container."),
+	mcp.WithString("namespace",
+		mcp.Description("Namespace of the pod"),
+		mcp.Required(),
+	),
+	mcp.WithString("pod_name",
+		mcp.Description("Name of the pod"),
+		mcp.Required(),
+	),
+	mcp.WithString("container",
+		mcp.Description("Container name inside the pod"),
+	),
+	mcp.WithString("since",
+		mcp.Description("Only return logs newer than a relative duration like 5m"),
+	),
+)
+
+// nodeConfigTool defines the collect_node_config MCP tool.
+var nodeConfigTool = mcp.NewTool(
+	"collect_node_config",
+	mcp.WithTitleAnnotation("Gather kubelet and CRI-O configuration"),
+	mcp.WithDescription("Uses oc debug to print kubelet.conf and crio.conf from the node."),
+	mcp.WithString("node_name",
+		mcp.Description("Node to inspect"),
+		mcp.Required(),
+	),
+)
+
 // handleSosReport executes sosreport on the target node using toolbox.
 func handleSosReport(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	nodeName, err := req.RequireString("node_name")
@@ -255,6 +314,67 @@ func handleSosReport(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToo
 	}
 	caseID := req.GetString("case_id", "")
 	out, err := openshift.SosReport(nodeName, caseID)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultText(out), nil
+}
+
+// handleNetworkLogs runs gather_network_logs via oc adm must-gather.
+func handleNetworkLogs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	dest := req.GetString("dest_dir", "")
+	out, err := openshift.NetworkLogs(dest)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultText(out), nil
+}
+
+// handleProfilingNode collects kubelet and CRI-O profiles using gather_profiling_node.
+func handleProfilingNode(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	dest := req.GetString("dest_dir", "")
+	out, err := openshift.ProfilingNode(dest)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultText(out), nil
+}
+
+// handleEvents fetches recent cluster events.
+func handleEvents(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	out, err := openshift.Events()
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultText(out), nil
+}
+
+// handlePodLogs retrieves logs from the specified pod and container.
+func handlePodLogs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	ns, err := req.RequireString("namespace")
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	pod, err := req.RequireString("pod_name")
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	container := req.GetString("container", "")
+	since := req.GetString("since", "")
+	out, err := openshift.PodLogs(ns, pod, container, since)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultText(out), nil
+}
+
+// handleNodeConfig collects kubelet and CRI-O configuration from a node.
+func handleNodeConfig(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	nodeName, err := req.RequireString("node_name")
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	out, err := openshift.NodeConfig(nodeName)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
