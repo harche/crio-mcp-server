@@ -102,6 +102,15 @@ Arguments:
 ### `collect_events`
 Fetches recent Kubernetes events from all namespaces via `oc get events -A`.
 
+### `collect_node_metrics`
+Runs `oc adm top nodes` to gather CPU and memory usage for each node.
+
+### `query_prometheus`
+Executes a PromQL query against the cluster Prometheus service via `oc get --raw`.
+
+Arguments:
+- `query` (string, required) – the PromQL expression to run
+
 ### `collect_pod_logs`
 Retrieves logs from a specific pod similar to `oc logs`.
 

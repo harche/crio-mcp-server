@@ -117,3 +117,39 @@ func TestNodeConfig(t *testing.T) {
 		}
 	})
 }
+
+func TestNodeMetrics(t *testing.T) {
+	expected := []string{"adm", "top", "nodes"}
+	withRunMock(func(args ...string) ([]byte, error) {
+		if fmt.Sprint(args) != fmt.Sprint(expected) {
+			t.Fatalf("unexpected args %v", args)
+		}
+		return []byte("metrics"), nil
+	}, func() {
+		out, err := NodeMetrics()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if out != "metrics" {
+			t.Fatalf("unexpected output %q", out)
+		}
+	})
+}
+
+func TestPrometheusQuery(t *testing.T) {
+	expected := []string{"get", "--raw", "/api/v1/namespaces/openshift-monitoring/services/prometheus-k8s:9091/proxy/api/v1/query?query=up"}
+	withRunMock(func(args ...string) ([]byte, error) {
+		if fmt.Sprint(args) != fmt.Sprint(expected) {
+			t.Fatalf("unexpected args %v", args)
+		}
+		return []byte("{\"status\":\"success\"}"), nil
+	}, func() {
+		out, err := PrometheusQuery("up")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if out != "{\"status\":\"success\"}" {
+			t.Fatalf("unexpected output %q", out)
+		}
+	})
+}
