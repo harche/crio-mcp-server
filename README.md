@@ -2,6 +2,16 @@
 
 This repository defines a couple of [Model Context Protocol](https://github.com/mark3labs/mcp-go) tools for debugging OpenShift nodes and collecting logs. The tools are implemented in `pkg/sdkserver/tools.go` and can be registered with any MCP server built using the `mcp-go` SDK.
 
+```go
+import (
+    "github.com/harche/crio-mcp-server/pkg/sdkserver"
+    "github.com/mark3labs/mcp-go/server"
+)
+
+s := server.NewMCPServer("demo", "1.0.0")
+sdkserver.RegisterTools(s)
+```
+
 ## Tools
 
 ### `debug_node`

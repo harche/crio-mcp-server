@@ -9,6 +9,7 @@ import (
 
 	"github.com/harche/crio-mcp-server/pkg/openshift"
 	mcp "github.com/mark3labs/mcp-go/mcp"
+	"github.com/mark3labs/mcp-go/server"
 )
 
 // debugNodeTool defines the debug_node MCP tool.
@@ -379,4 +380,22 @@ func handleNodeConfig(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 	return mcp.NewToolResultText(out), nil
+}
+
+// RegisterTools registers all available tools with the provided server.
+func RegisterTools(s *server.MCPServer) {
+	s.AddTools(
+		server.ServerTool{Tool: debugNodeTool, Handler: handleDebugNode},
+		server.ServerTool{Tool: nodeLogsTool, Handler: handleNodeLogs},
+		server.ServerTool{Tool: pprofTool, Handler: handlePprof},
+		server.ServerTool{Tool: mustGatherTool, Handler: handleMustGather},
+		server.ServerTool{Tool: crictlTool, Handler: handleCrictl},
+		server.ServerTool{Tool: cgroupfsTool, Handler: handleTraverseCgroupfs},
+		server.ServerTool{Tool: sosReportTool, Handler: handleSosReport},
+		server.ServerTool{Tool: networkLogsTool, Handler: handleNetworkLogs},
+		server.ServerTool{Tool: profilingTool, Handler: handleProfilingNode},
+		server.ServerTool{Tool: eventsTool, Handler: handleEvents},
+		server.ServerTool{Tool: podLogsTool, Handler: handlePodLogs},
+		server.ServerTool{Tool: nodeConfigTool, Handler: handleNodeConfig},
+	)
 }
