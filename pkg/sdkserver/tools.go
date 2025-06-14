@@ -129,6 +129,26 @@ func handleDebugNode(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToo
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
+	if req.GetBool("collect_files", false) {
+		pathsAny, _ := req.GetArguments()["paths"].([]any)
+		if len(pathsAny) > 0 {
+			paths := make([]string, len(pathsAny))
+			for i, p := range pathsAny {
+				paths[i] = fmt.Sprint(p)
+			}
+			data, err := openshift.CopyFilesFromNode(nodeName, paths)
+			if err != nil {
+				return mcp.NewToolResultError(err.Error()), nil
+			}
+			res := mcp.BlobResourceContents{
+				URI:      "debug-node-files.tar.gz",
+				MIMEType: "application/tar+gzip",
+				Blob:     base64.StdEncoding.EncodeToString(data),
+			}
+			return mcp.NewToolResultResource("collected files", res), nil
+		}
+	}
+
 	commands, _ := req.GetArguments()["commands"].([]any)
 	if len(commands) == 0 {
 		commands = []any{"journalctl --no-pager -u crio"}
