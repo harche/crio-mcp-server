@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/harche/crio-mcp-server/pkg/openshift"
+	"github.com/harche/crio-mcp-server/pkg/redhat"
 	mcp "github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -368,6 +369,36 @@ var nodeConfigTool = mcp.NewTool(
 	),
 )
 
+// kcsSearchTool defines the search_kcs MCP tool.
+var kcsSearchTool = mcp.NewTool(
+	"search_kcs",
+	mcp.WithTitleAnnotation("Search Red Hat Knowledge Base"),
+	mcp.WithDescription("Queries the Customer Portal Knowledge Base via the Case Management API."),
+	mcp.WithString("query",
+		mcp.Description("Search query string"),
+		mcp.Required(),
+	),
+	mcp.WithNumber("rows",
+		mcp.Description("Number of results to return"),
+		mcp.DefaultNumber(20),
+	),
+	mcp.WithString("offline_token",
+		mcp.Description("Offline access token for authentication"),
+		mcp.Required(),
+	),
+)
+
+// cveInfoTool defines the get_cve MCP tool.
+var cveInfoTool = mcp.NewTool(
+	"get_cve",
+	mcp.WithTitleAnnotation("Fetch CVE details"),
+	mcp.WithDescription("Retrieves CVE information from the Red Hat Security Data API."),
+	mcp.WithString("cve_id",
+		mcp.Description("CVE identifier (e.g. CVE-2025-1234)"),
+		mcp.Required(),
+	),
+)
+
 // handleSosReport executes sosreport on the target node using toolbox.
 func handleSosReport(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	nodeName, err := req.RequireString("node_name")
@@ -465,6 +496,37 @@ func handleNodeConfig(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	return mcp.NewToolResultText(out), nil
 }
 
+// handleSearchKCS queries the Red Hat knowledge base.
+func handleSearchKCS(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	q, err := req.RequireString("query")
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	rows := req.GetInt("rows", 20)
+	token, err := req.RequireString("offline_token")
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	out, err := redhat.SearchKCS(q, rows, token)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultText(out), nil
+}
+
+// handleCVEInfo fetches CVE information from the Security Data API.
+func handleCVEInfo(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	id, err := req.RequireString("cve_id")
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	out, err := redhat.CVEInfo(id)
+	if err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
+	}
+	return mcp.NewToolResultText(out), nil
+}
+
 // RegisterTools registers all available tools with the provided server.
 func RegisterTools(s *server.MCPServer) {
 	s.AddTools(
@@ -482,5 +544,7 @@ func RegisterTools(s *server.MCPServer) {
 		server.ServerTool{Tool: nodeMetricsTool, Handler: handleNodeMetrics},
 		server.ServerTool{Tool: podLogsTool, Handler: handlePodLogs},
 		server.ServerTool{Tool: nodeConfigTool, Handler: handleNodeConfig},
+		server.ServerTool{Tool: kcsSearchTool, Handler: handleSearchKCS},
+		server.ServerTool{Tool: cveInfoTool, Handler: handleCVEInfo},
 	)
 }

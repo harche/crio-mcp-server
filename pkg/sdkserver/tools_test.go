@@ -3,9 +3,13 @@ package sdkserver
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/harche/crio-mcp-server/pkg/openshift"
+	"github.com/harche/crio-mcp-server/pkg/redhat"
 	mcp "github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -276,4 +280,45 @@ func TestHandleNodeConfig(t *testing.T) {
 			t.Fatalf("unexpected result: %v", text(res))
 		}
 	})
+}
+
+func TestHandleSearchKCS(t *testing.T) {
+	calls := 0
+	redhat.Do = func(req *http.Request) (*http.Response, error) {
+		calls++
+		if calls == 1 {
+			return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(strings.NewReader(`{"access_token":"tok"}`))}, nil
+		}
+		return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(strings.NewReader("result"))}, nil
+	}
+	defer func() { redhat.Do = http.DefaultClient.Do }()
+
+	req := mcp.CallToolRequest{Params: mcp.CallToolParams{Arguments: map[string]any{
+		"query":         "bug",
+		"offline_token": "off",
+	}}}
+	res, err := handleSearchKCS(context.Background(), req)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if res.IsError || text(res) != "result" {
+		t.Fatalf("unexpected result: %v", text(res))
+	}
+}
+
+func TestHandleCVEInfo(t *testing.T) {
+	redhat.Do = func(req *http.Request) (*http.Response, error) {
+		return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(strings.NewReader("info"))}, nil
+	}
+	defer func() { redhat.Do = http.DefaultClient.Do }()
+	req := mcp.CallToolRequest{Params: mcp.CallToolParams{Arguments: map[string]any{
+		"cve_id": "CVE-1234",
+	}}}
+	res, err := handleCVEInfo(context.Background(), req)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if res.IsError || text(res) != "info" {
+		t.Fatalf("unexpected result: %v", text(res))
+	}
 }
