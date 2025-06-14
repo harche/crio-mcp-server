@@ -126,3 +126,17 @@ Uses `oc debug` to print kubelet and CRI-O configuration files from the node.
 Arguments:
 - `node_name` (string, required) – node to inspect
 
+### `search_kcs`
+Queries the Red Hat Knowledge Base using the Case Management API.
+
+Arguments:
+- `query` (string, required) – search keywords
+- `rows` (number) – number of results to return (default 20)
+- `offline_token` (string, required) – offline access token for authentication
+
+### `get_cve`
+Retrieves CVE details from the Red Hat Security Data API.
+
+Arguments:
+- `cve_id` (string, required) – identifier like `CVE-2025-1234`
+
